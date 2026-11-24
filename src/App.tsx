@@ -13,6 +13,7 @@ import { projectPath, projects, type ProjectCategory } from './projects';
 const categories: ('All' | ProjectCategory)[] = ['All', 'Systems', 'Games', 'Tools'];
 const github = 'https://github.com/wander-code';
 const email = 'wanderer.migs@gmail.com';
+const gmailComposeUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(email)}`;
 const linkedin = 'https://www.linkedin.com/in/tomas-miguel-capili-22246a330/';
 const legacySections: Record<string, string> = {
   '#work': '/projects',
@@ -57,7 +58,7 @@ function Home({ light }: { light: boolean }) {
           </nav>
           <div ref={textOverlay} className="trail-copy">
             <div className="trail-identity">
-              <p className="trail-name">Tomas Capili</p>
+              <p className="trail-name">Tomas Miguel M. Capili</p>
               <h1 id="hero-title">Wander<span>.</span></h1>
               <p className="trail-intro">Software engineering student, an endurance mountaineer in the Philippines.</p>
             </div>
@@ -119,7 +120,7 @@ function ContactPage() {
           <p>Get in touch about software engineering, a project, or a good trail.</p>
         </div>
         <div className="trail-contact-links">
-          <a className="primary-button" href={`mailto:${email}`}><Mail size={18} /> {email}</a>
+          <a className="primary-button" href={gmailComposeUrl} target="_blank" rel="noopener"><Mail size={18} /> {email}</a>
           <a className="secondary-button" href={linkedin}><Linkedin size={18} /> LinkedIn</a>
           <a className="secondary-button" href={github}><Github size={18} /> GitHub</a>
         </div>

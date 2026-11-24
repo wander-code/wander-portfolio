@@ -15,7 +15,7 @@ npm run dev
 
 `npm run build` type-checks the source and writes `dist/`. `npm run preview` serves the production build locally. The build uses relative assets and hash-based case study routes, so it can be served from a static host at any path.
 
-Project summaries, categories, and case study content live in `src/projects.ts`. The boop logo and gameplay screenshots are in `src/assets/boop/`. Qualifications are in `src/QualificationsPage.tsx`.
+Project summaries, categories, and case study content live in `src/projects.ts`. The boop logo and gameplay screenshots are in `src/assets/boop/`. The About page and qualifications are in `src/AboutPage.tsx`.
 
 ## Mount Pulag terrain
 

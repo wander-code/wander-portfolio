@@ -1,4 +1,4 @@
-import { Github, Linkedin, Mail, Mountain, Moon, Sun } from 'lucide-react';
+import { Github, Linkedin, Mail, Moon, Sun } from 'lucide-react';
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Link, Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom';
 import boopLogo from './assets/boop/logo.png';
@@ -7,23 +7,24 @@ import sunflowerGameplay from './assets/boop/sunflower-gameplay.png';
 import dotexeLogo from './assets/dotexe/logo.png';
 import { checkpoints } from './checkpoints';
 import { MountainScene } from './MountainScene';
-import { QualificationsPage } from './QualificationsPage';
+import { AboutPage } from './AboutPage';
 import { projectPath, projects, type ProjectCategory } from './projects';
 
 const categories: ('All' | ProjectCategory)[] = ['All', 'Systems', 'Games', 'Tools'];
+const fullName = 'Tomas Miguel M. Capili';
 const github = 'https://github.com/wander-code';
 const email = 'wanderer.migs@gmail.com';
 const gmailComposeUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(email)}`;
 const linkedin = 'https://www.linkedin.com/in/tomas-miguel-capili-22246a330/';
 const legacySections: Record<string, string> = {
   '#work': '/projects',
-  '#about': '/qualifications',
-  '#qualifications': '/qualifications',
+  '#about': '/about',
+  '#qualifications': '/about',
   '#contact': '/contact',
 };
 const pageTitles: Record<string, string> = {
   '/projects': 'Projects',
-  '/qualifications': 'Qualifications',
+  '/about': 'About',
   '/contact': 'Contact',
 };
 
@@ -53,12 +54,12 @@ function Home({ light }: { light: boolean }) {
           <nav className="trail-nav" aria-label="Main navigation">
             <Link to="/" aria-current="page">Home</Link>
             <Link to="/projects">Projects</Link>
-            <Link to="/qualifications">Qualifications</Link>
+            <Link to="/about">About</Link>
             <Link to="/contact">Contact</Link>
           </nav>
           <div ref={textOverlay} className="trail-copy">
             <div className="trail-identity">
-              <p className="trail-name">Tomas Miguel M. Capili</p>
+              <p className="trail-name">{fullName}</p>
               <h1 id="hero-title">Wander<span>.</span></h1>
               <p className="trail-intro">Software engineering student, an endurance mountaineer in the Philippines.</p>
             </div>
@@ -195,7 +196,7 @@ function usePageNavigation() {
   useEffect(() => {
     const project = projects.find((entry) => projectPath(entry) === pathname);
     const title = project?.title ?? pageTitles[pathname] ?? 'Wander';
-    document.title = title + ' — Tomas Capili';
+    document.title = title + ' — ' + fullName;
     window.scrollTo(0, 0);
     document.getElementById('main')?.focus({ preventScroll: true });
   }, [pathname]);
@@ -231,11 +232,11 @@ export function App() {
       <button type="button" className="skip-link" onClick={() => document.getElementById('main')?.focus()}>Skip to content</button>
       <header className={onHome ? 'site-header site-header-home' : 'site-header'}>
         <div className="shell header-content">
-          <Link className="brand" to="/" aria-label="Wander Code home"><Mountain size={22} /> <span>WANDER<span className="brand-divider">/</span>CODE</span></Link>
+          <Link className="brand" to="/" aria-label={fullName + ' home'}>{fullName}</Link>
           {!onHome && (
             <nav aria-label="Main navigation">
               <Link to="/projects" aria-current={pathname.startsWith('/projects') ? 'true' : undefined}>Projects</Link>
-              <Link to="/qualifications">Qualifications</Link>
+              <Link to="/about" aria-current={pathname === '/about' ? 'page' : undefined}>About</Link>
               <Link to="/contact">Contact</Link>
             </nav>
           )}
@@ -245,7 +246,8 @@ export function App() {
       <Routes>
         <Route path="/" element={<Home light={light} />} />
         <Route path="/projects" element={<ProjectsPage />} />
-        <Route path="/qualifications" element={<QualificationsPage />} />
+        <Route path="/about" element={<AboutPage name={fullName} />} />
+        <Route path="/qualifications" element={<Navigate to="/about" replace />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/projects/:id" element={<CaseStudy />} />
         <Route path="*" element={<NotFound />} />
@@ -253,7 +255,7 @@ export function App() {
       {!onHome && (
         <footer className="site-footer">
           <div className="shell footer-content">
-            <span>Tomas Capili</span>
+            <span>{fullName}</span>
             <a href={github}><Github size={16} /> GitHub</a>
             <Link to="/">Back to Wander</Link>
           </div>

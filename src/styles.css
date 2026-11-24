@@ -132,17 +132,22 @@ h2 { font: 650 clamp(2.8rem, 5.3vw, 5rem)/0.96 var(--heading); letter-spacing: -
 }
 .project-art > div { transition: transform 260ms ease; }
 .project-card-link:hover .project-art > div { transform: scale(1.075); }
-.art-stack { display: grid; place-items: center; width: 150px; height: 150px; }
-.art-stack i { grid-area: 1 / 1; width: 92px; height: 92px; border: 1px solid currentColor; transform: translateY(var(--offset, 0px)) rotateX(57deg) rotateZ(45deg); background: color-mix(in srgb, currentColor 11%, #151715); }
-.art-stack i:nth-child(1) { --offset: 34px; }
-.art-stack i:nth-child(2) { --offset: 12px; }
-.art-stack i:nth-child(3) { --offset: -10px; }
-.art-stack i:nth-child(4) { --offset: -32px; background-image: repeating-linear-gradient(90deg, transparent 0 10px, #e4f5a54b 11px 12px); }
+.art-dotexe { background: #fff; }
+
+.dotexe-logo { width: min(74%, 184px); }
+.case-hero .dotexe-logo { width: min(74%, 246px); }
+
+.dotexe-logo img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
 .art-boop {
   background: #f4efe3;
 }
 
-.art-boop::before { content: none; }
+.art-dotexe::before, .art-boop::before { content: none; }
 
 .boop-logo {
   width: 120px;

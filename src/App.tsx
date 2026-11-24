@@ -1,9 +1,10 @@
-import { Github, Mail, Mountain, Moon, Sun } from 'lucide-react';
+import { Github, Linkedin, Mail, Mountain, Moon, Sun } from 'lucide-react';
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Link, Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom';
 import boopLogo from './assets/boop/logo.png';
 import pastelGameplay from './assets/boop/pastel-gameplay.png';
 import sunflowerGameplay from './assets/boop/sunflower-gameplay.png';
+import dotexeLogo from './assets/dotexe/logo.png';
 import { checkpoints } from './checkpoints';
 import { MountainScene } from './MountainScene';
 import { QualificationsPage } from './QualificationsPage';
@@ -11,7 +12,8 @@ import { projectPath, projects, type ProjectCategory } from './projects';
 
 const categories: ('All' | ProjectCategory)[] = ['All', 'Systems', 'Games', 'Tools'];
 const github = 'https://github.com/wander-code';
-const email = 'mailto:wanderer.migs@gmail.com';
+const email = 'wanderer.migs@gmail.com';
+const linkedin = 'https://www.linkedin.com/in/tomas-miguel-capili-22246a330/';
 const legacySections: Record<string, string> = {
   '#work': '/projects',
   '#about': '/qualifications',
@@ -27,7 +29,7 @@ const pageTitles: Record<string, string> = {
 function ProjectArt({ id }: { id: string }) {
   return (
     <div className={`project-art art-${id}`} aria-hidden="true">
-      {id === 'dotexe' && <div className="art-stack"><i /><i /><i /><i /><i /></div>}
+      {id === 'dotexe' && <div className="dotexe-logo"><img src={dotexeLogo} width={1000} height={1000} alt="" /></div>}
       {id === 'boop' && <div className="boop-logo"><img src={boopLogo} width={720} height={1650} alt="" /></div>}
       {id === 'schedule-optimizer' && <div className="art-calendar"><i /><i /><i /><i /><i /></div>}
       {id === 'starrunesonders' && <div className="art-language"><span>{'{ '}</span><i>✦</i><span>{' }'}</span></div>}
@@ -117,7 +119,8 @@ function ContactPage() {
           <p>Get in touch about software engineering, a project, or a good trail.</p>
         </div>
         <div className="trail-contact-links">
-          <a className="primary-button" href={email}><Mail size={18} /> Email me</a>
+          <a className="primary-button" href={`mailto:${email}`}><Mail size={18} /> {email}</a>
+          <a className="secondary-button" href={linkedin}><Linkedin size={18} /> LinkedIn</a>
           <a className="secondary-button" href={github}><Github size={18} /> GitHub</a>
         </div>
       </section>

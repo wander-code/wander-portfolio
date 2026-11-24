@@ -262,6 +262,9 @@
 }
 
 .terrain-credit {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 9px;
   position: absolute;
   inset: auto 12px 10px auto;
   color: var(--scene-ink);
@@ -271,7 +274,7 @@
   z-index: 2;
 }
 
-.terrain-credit:hover {
+.terrain-credit a:hover {
   text-decoration: underline;
 }
 

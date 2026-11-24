@@ -17,8 +17,8 @@ npm run dev
 
 Project summaries, categories, map positions, and case study content live in `src/projects.ts`. The terrain and project illustrations are drawn by the site. The tap challenge on the boop page is a browser demo of the spawning mechanic.
 
-## Mount Pulag terrain
+## Mount Pulag panorama
 
-The model samples a 73 × 73 grid from zoom-13 Mapzen Terrarium tiles in a 5.6 km square centered at 16.597722° N, 120.898750° E. The renderer tapers the outer edge and exaggerates the vertical scale. The checkpoint path illustrates academic milestones.
+The homepage renders an ASCII adaptation of a dawn photograph of Mount Pulag’s summit grasslands. The camera pans and zooms across the photograph as visitors select checkpoints. The overlaid route illustrates academic milestones.
 
-SRTM data courtesy of the U.S. Geological Survey. Terrain Tiles accessed November 24, 2026. [AWS Open Data Registry](https://registry.opendata.aws/terrain-tiles/) · [Mapzen attribution](https://github.com/tilezen/joerd/blob/master/docs/attribution.md)
+Photograph by Bien Orellana Bacarra Jr (Bien02). The site crops, tints, and renders the photograph in text characters. [Wikimedia Commons source](https://commons.wikimedia.org/wiki/File:Panoramic_Shot_of_Mt._Pulag_Summit_and_Grassland.jpg) · [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)

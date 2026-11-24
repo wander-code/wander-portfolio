@@ -2,6 +2,8 @@
 
 Tomas Capili’s software engineering portfolio. Explore four projects through an interactive topographic map and dedicated case studies.
 
+[Open the live portfolio](https://wander-code.github.io/wander-portfolio/)
+
 ## Development
 
 Use Node.js 20.19+ or 22.12+.

@@ -1,6 +1,6 @@
 # Wander Portfolio
 
-Tomas Capili’s software engineering portfolio. Explore four projects through an interactive topographic map and dedicated case studies.
+Tomas Capili’s software engineering portfolio. Explore an interactive mountain inspired by hiking, plus four software projects and their case studies.
 
 [Open the live portfolio](https://wander-code.github.io/wander-portfolio/)
 

@@ -1,7 +1,8 @@
-import { Code2, Compass, Github, Mail, Moon, Sun } from 'lucide-react';
-import { useEffect, useState, type CSSProperties } from 'react';
+import { Github, Mail, Mountain, Moon, Sun } from 'lucide-react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Link, Route, Routes, useLocation, useParams } from 'react-router-dom';
 import { BoopDemo } from './BoopDemo';
+import { MountainScene } from './MountainScene';
 import { ProjectMap } from './ProjectMap';
 import { projectPath, projects, type ProjectCategory } from './projects';
 
@@ -21,67 +22,88 @@ function ProjectArt({ id }: { id: string }) {
 }
 
 function Home({ light }: { light: boolean }) {
+  const trail = useRef<HTMLElement>(null);
+  const { hash } = useLocation();
   const [category, setCategory] = useState<(typeof categories)[number]>('All');
   const filtered = category === 'All' ? projects : projects.filter((project) => project.category === category);
 
   return (
-    <main id="main" tabIndex={-1} className="shell">
-      <section className="hero" aria-labelledby="hero-title">
-        <div className="hero-copy">
-          <p className="eyebrow hero-label"><span /> SOFTWARE ENGINEERING PORTFOLIO</p>
-          <h1 id="hero-title">Tomas<br />Capili<span>.</span></h1>
-          <p className="intro">I build software for real constraints and games for the fun of it.</p>
-          <div className="hero-actions">
-            <Link className="primary-button" to="/#work">Explore my work</Link>
-            <a className="secondary-button" href={github}><Github size={17} /> GitHub</a>
-          </div>
-          <div className="hero-location"><Compass size={15} /> <span>Based in the Philippines</span></div>
+    <main id="main" tabIndex={-1}>
+      <section ref={trail} className="trail-hero" aria-labelledby="hero-title">
+        <nav className="trail-nav" aria-label="Main navigation">
+          <Link to="/#work" aria-current={hash === '#work' ? 'location' : undefined}>Projects</Link>
+          <Link to="/#qualifications" aria-current={hash === '#qualifications' ? 'location' : undefined}>Qualifications</Link>
+          <Link to="/#contact" aria-current={hash === '#contact' ? 'location' : undefined}>Contact</Link>
+        </nav>
+        <div className="trail-identity">
+          <p className="trail-name">Tomas Capili</p>
+          <h1 id="hero-title">Wander<span>.</span></h1>
+          <p className="trail-intro">Software engineering student and hiker in the Philippines.</p>
         </div>
-        <ProjectMap light={light} />
+        <MountainScene light={light} hero={trail} />
       </section>
 
-      <section className="work-section" id="work" tabIndex={-1} aria-labelledby="work-title">
-        <div className="section-heading">
-          <h2 id="work-title">Selected work<span>.</span></h2>
-          <div className="filter-list" role="group" aria-label="Filter projects">
-            {categories.map((option) => (
-              <button key={option} type="button" aria-pressed={category === option} onClick={() => setCategory(option)}>{option}</button>
+      <div className="shell">
+        <section className="work-section" id="work" tabIndex={-1} aria-labelledby="work-title">
+          <div className="section-heading">
+            <h2 id="work-title">Projects<span>.</span></h2>
+            <div className="filter-list" role="group" aria-label="Filter projects">
+              {categories.map((option) => (
+                <button key={option} type="button" aria-pressed={category === option} onClick={() => setCategory(option)}>{option}</button>
+              ))}
+            </div>
+          </div>
+          <p className="visually-hidden" role="status">{filtered.length} projects shown</p>
+          <div className="project-grid">
+            {filtered.map((project) => (
+              <article key={project.id} className="project-card" style={{ '--project-color': project.color } as CSSProperties}>
+                <Link to={projectPath(project)} className="project-card-link" aria-label={project.title + ' case study'}>
+                  <ProjectArt id={project.id} />
+                  <div className="project-card-text">
+                    <p className="eyebrow">{project.discipline}</p>
+                    <h3>{project.title}</h3>
+                    <p>{project.summary}</p>
+                    <span className="project-cta">View case study</span>
+                  </div>
+                </Link>
+              </article>
             ))}
           </div>
-        </div>
-        <p className="visually-hidden" role="status">{filtered.length} projects shown</p>
-        <div className="project-grid">
-          {filtered.map((project) => (
-            <article key={project.id} className="project-card" style={{ '--project-color': project.color } as CSSProperties}>
-              <Link to={projectPath(project)} className="project-card-link" aria-label={`${project.title} case study`}>
-                <ProjectArt id={project.id} />
-                <div className="project-card-text">
-                  <p className="eyebrow">{project.discipline}</p>
-                  <h3>{project.title}</h3>
-                  <p>{project.summary}</p>
-                  <span className="project-cta">View case study</span>
-                </div>
-              </Link>
+          <details className="project-map-disclosure">
+            <summary>Explore the project map</summary>
+            <ProjectMap light={light} />
+          </details>
+        </section>
+
+        <section className="qualifications-section" id="qualifications" tabIndex={-1} aria-labelledby="qualifications-title">
+          <h2 id="qualifications-title">Qualifications<span>.</span></h2>
+          <div className="qualification-list">
+            <article>
+              <h3>Education</h3>
+              <p>Software engineering student at FEU Institute of Technology.</p>
             </article>
-          ))}
-        </div>
-      </section>
+            <article>
+              <h3>Technical skills</h3>
+              <p>C++ and Python are my strongest languages. My projects cover backend engineering, optimization, Android development, and language design.</p>
+            </article>
+            <article>
+              <h3>Leadership</h3>
+              <p>I led the four-person DotEXE thesis team and handled technical operations for ARTwakening across three academic terms.</p>
+            </article>
+          </div>
+        </section>
 
-      <section className="about-section" id="about" tabIndex={-1} aria-labelledby="about-title">
-        <h2 id="about-title">About me<span>.</span></h2>
-        <div>
-          <p>I’m a software engineering student at FEU Institute of Technology. I feel most at home in C++ and Python, and I’ve built projects that range from Android games to optimization tools.</p>
-          <p>I led our DotEXE thesis team and handled technical operations for ARTwakening across three academic terms. Outside of coding, I’m usually playing games or looking for my next hike.</p>
-        </div>
-      </section>
-
-      <section className="contact-section" id="contact" tabIndex={-1} aria-labelledby="contact-title">
-        <div>
-          <h2 id="contact-title">Get in touch<span>.</span></h2>
-          <p>I’m interested in software engineering internships and opportunities to build with a team.</p>
-        </div>
-        <a className="primary-button" href={email}><Mail size={18} /> Email me</a>
-      </section>
+        <section className="contact-section" id="contact" tabIndex={-1} aria-labelledby="contact-title">
+          <div>
+            <h2 id="contact-title">Contact<span>.</span></h2>
+            <p>Get in touch about software engineering, a project, or a good trail.</p>
+          </div>
+          <div className="trail-contact-links">
+            <a className="primary-button" href={email}><Mail size={18} /> Email me</a>
+            <a className="secondary-button" href={github}><Github size={18} /> GitHub</a>
+          </div>
+        </section>
+      </div>
     </main>
   );
 }
@@ -133,9 +155,10 @@ function usePageNavigation() {
 
   useEffect(() => {
     const project = projects.find((entry) => projectPath(entry) === pathname);
-    document.title = project ? `${project.title} — Tomas Capili` : 'Tomas Capili — Software Engineering Portfolio';
+    document.title = project ? `${project.title} — Tomas Capili` : 'Wander — Tomas Capili';
 
-    const target = document.getElementById(hash ? hash.slice(1) : 'main');
+    const anchor = hash === '#about' ? 'qualifications' : hash.slice(1);
+    const target = document.getElementById(anchor || 'main');
     if (hash && target) {
       target.scrollIntoView();
     } else {
@@ -172,14 +195,16 @@ export function App() {
   return (
     <>
       <button type="button" className="skip-link" onClick={() => document.getElementById('main')?.focus()}>Skip to content</button>
-      <header className="site-header">
+      <header className={pathname === '/' ? 'site-header site-header-home' : 'site-header'}>
         <div className="shell header-content">
-          <Link className="brand" to="/" aria-label="Wander Code home"><Code2 size={23} /> <span>WANDER<span className="brand-divider">/</span>CODE</span></Link>
-          <nav aria-label="Main navigation">
-            <Link to="/#work" aria-current={pathname.startsWith('/projects/') ? 'true' : undefined}>Work</Link>
-            <Link to="/#about">About</Link>
-            <Link to="/#contact">Contact</Link>
-          </nav>
+          <Link className="brand" to="/" aria-label="Wander Code home"><Mountain size={22} /> <span>WANDER<span className="brand-divider">/</span>CODE</span></Link>
+          {pathname !== '/' && (
+            <nav aria-label="Main navigation">
+              <Link to="/#work" aria-current={pathname.startsWith('/projects/') ? 'true' : undefined}>Projects</Link>
+              <Link to="/#qualifications">Qualifications</Link>
+              <Link to="/#contact">Contact</Link>
+            </nav>
+          )}
           <button type="button" className="theme-button" aria-label={light ? 'Switch to dark theme' : 'Switch to light theme'} onClick={() => setLight(!light)}>{light ? <Moon size={18} /> : <Sun size={19} />}</button>
         </div>
       </header>

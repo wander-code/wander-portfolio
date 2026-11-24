@@ -1,146 +1,124 @@
-import { ChevronLeft, ChevronRight, Compass, LocateFixed } from 'lucide-react';
-import { useEffect, useRef, type RefObject } from 'react';
+import { MapPin } from 'lucide-react';
+import { useEffect, useRef } from 'react';
+import { checkpoints } from './checkpoints';
 import { createMountainRenderer, type MountainView } from './mountain';
+import { pulagSummit } from './pulagElevation';
 import './mountain.css';
 
-const restView: MountainView = { yaw: -0.26, pitch: 0.45 };
+const positions = checkpoints.map(({ position }) => position);
+const cameraDuration = 510;
 
-export function MountainScene({ light, hero }: { light: boolean; hero: RefObject<HTMLElement | null> }) {
+function interpolate(from: MountainView, to: MountainView, progress: number): MountainView {
+  return {
+    yaw: from.yaw + (to.yaw - from.yaw) * progress,
+    pitch: from.pitch + (to.pitch - from.pitch) * progress,
+    zoom: from.zoom + (to.zoom - from.zoom) * progress,
+    lift: from.lift + (to.lift - from.lift) * progress,
+  };
+}
+
+export function MountainScene({ light, selected, onSelect }: {
+  light: boolean;
+  selected: number;
+  onSelect: (index: number) => void;
+}) {
   const canvas = useRef<HTMLCanvasElement>(null);
-  const controls = useRef<(direction: -1 | 0 | 1) => void>(() => {});
-  const bearing = useRef<HTMLSpanElement>(null);
+  const markers = useRef<(HTMLButtonElement | null)[]>([]);
+  const currentView = useRef<MountainView>(checkpoints[0].view);
+  const selectView = useRef<(index: number) => void>(() => {});
 
   useEffect(() => {
     const surface = canvas.current;
-    const frame = hero.current;
-    if (!surface || !frame) return;
-    const terrain = createMountainRenderer(surface, light);
+    if (!surface) return;
+    const terrain = createMountainRenderer(surface, light, positions);
     if (!terrain) return;
 
     const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
-    let current = { ...restView };
-    let base = { ...restView };
-    let target = { ...restView };
+    let active = 0;
     let animation = 0;
-    let drag: { id: number; x: number; yaw: number } | undefined;
 
-    function animate() {
-      const offsetYaw = target.yaw - current.yaw;
-      const offsetPitch = target.pitch - current.pitch;
-      const settled = Math.abs(offsetYaw) + Math.abs(offsetPitch) < 0.003;
-      const ease = settled || preference.matches ? 1 : 0.19;
-      current.yaw += offsetYaw * ease;
-      current.pitch += offsetPitch * ease;
-      terrain?.draw(current);
-
-      if (bearing.current) {
-        const angle = (Math.round(current.yaw * 180 / Math.PI) + 360) % 360;
-        bearing.current.textContent = String(angle).padStart(3, '0') + '°';
-      }
-      animation = !settled && !preference.matches ? window.requestAnimationFrame(animate) : 0;
+    function paint() {
+      const points = terrain!.draw(currentView.current, active);
+      points.forEach(({ x, y }, index) => {
+        const marker = markers.current[index];
+        if (!marker) return;
+        marker.style.left = x.toFixed(1) + 'px';
+        marker.style.top = y.toFixed(1) + 'px';
+      });
     }
 
-    function requestDraw() {
-      if (!animation) animation = window.requestAnimationFrame(animate);
-    }
-
-    function move(event: PointerEvent) {
-      if (drag?.id === event.pointerId) {
-        base.yaw = Math.max(-1.05, Math.min(0.89, drag.yaw + (event.clientX - drag.x) * 0.006));
-        target = { ...base };
-        requestDraw();
+    selectView.current = (index) => {
+      active = index;
+      window.cancelAnimationFrame(animation);
+      const from = currentView.current;
+      const to = checkpoints[index].view;
+      if (preference.matches || from === to) {
+        currentView.current = to;
+        paint();
         return;
       }
 
-      const overControl = event.target instanceof Element && event.target.closest('a, button');
-      if (event.pointerType !== 'mouse' || preference.matches || overControl) return;
-      const bounds = frame!.getBoundingClientRect();
-      const x = (event.clientX - bounds.left) / bounds.width - 0.5;
-      const y = (event.clientY - bounds.top) / bounds.height - 0.5;
-      target = { yaw: base.yaw + x * 0.77, pitch: base.pitch - y * 0.39 };
-      requestDraw();
-    }
-
-    function leave() {
-      if (drag) return;
-      target = { ...base };
-      requestDraw();
-    }
-
-    function startDrag(event: PointerEvent) {
-      if (!event.isPrimary || event.button !== 0) return;
-      drag = { id: event.pointerId, x: event.clientX, yaw: current.yaw };
-      surface!.setPointerCapture(event.pointerId);
-    }
-
-    function finishDrag(event: PointerEvent) {
-      if (drag?.id !== event.pointerId) return;
-      drag = undefined;
-      if (surface!.hasPointerCapture(event.pointerId)) surface!.releasePointerCapture(event.pointerId);
-    }
-
-    controls.current = (direction) => {
-      base = direction === 0 ? { ...restView } : {
-        ...base,
-        yaw: Math.max(-1.05, Math.min(0.89, base.yaw + direction * 0.26)),
-      };
-      target = { ...base };
-      requestDraw();
+      const start = performance.now();
+      function advance(timestamp: number) {
+        const progress = preference.matches ? 1 : Math.min(1, (timestamp - start) / cameraDuration);
+        currentView.current = progress === 1 ? to : interpolate(from, to, 1 - (1 - progress) ** 3);
+        paint();
+        if (progress < 1) animation = window.requestAnimationFrame(advance);
+      }
+      animation = window.requestAnimationFrame(advance);
     };
 
-    const observer = new ResizeObserver(() => {
+    const resize = () => {
       terrain.resize();
-      requestDraw();
-    });
+      paint();
+    };
+    const observer = new ResizeObserver(resize);
     observer.observe(surface);
-    terrain.resize();
-    requestDraw();
+    resize();
 
-    frame.addEventListener('pointermove', move);
-    frame.addEventListener('pointerleave', leave);
-    surface.addEventListener('pointerdown', startDrag);
-    surface.addEventListener('pointerup', finishDrag);
-    surface.addEventListener('pointercancel', finishDrag);
-    surface.addEventListener('lostpointercapture', finishDrag);
-    preference.addEventListener('change', leave);
     return () => {
       observer.disconnect();
       window.cancelAnimationFrame(animation);
-      frame.removeEventListener('pointermove', move);
-      frame.removeEventListener('pointerleave', leave);
-      surface.removeEventListener('pointerdown', startDrag);
-      surface.removeEventListener('pointerup', finishDrag);
-      surface.removeEventListener('pointercancel', finishDrag);
-      surface.removeEventListener('lostpointercapture', finishDrag);
-      preference.removeEventListener('change', leave);
-      controls.current = () => {};
+      selectView.current = () => {};
     };
-  }, [hero, light]);
+  }, [light]);
+
+  useEffect(() => {
+    selectView.current(selected);
+  }, [light, selected]);
 
   return (
-    <figure className="mountain-scene">
+    <figure className="mountain-scene" aria-label="Mount Pulag milestone trail">
       <div className="mountain-skylight" aria-hidden="true" />
-      <div className="mountain-crosshair crosshair-top" aria-hidden="true">+</div>
-      <div className="mountain-crosshair crosshair-bottom" aria-hidden="true">+</div>
       <canvas
         ref={canvas}
         className="mountain-canvas"
         role="img"
-        aria-label="A three-dimensional mountain rendered from small colored squares"
+        aria-label="Mount Pulag rendered in typed characters, with a trail from the foothills to the summit"
       />
-      <div className="mountain-bearing" aria-hidden="true"><Compass size={16} /><span ref={bearing}>345°</span></div>
-      <figcaption className="mountain-caption">
-        <span className="mountain-hint">
-          <span className="pointer-hint">Move your pointer to tilt the mountain</span>
-          <span className="touch-hint">Drag sideways to rotate the mountain</span>
-          <span className="motion-hint">Use the controls to rotate the mountain</span>
-        </span>
-        <div className="mountain-controls" role="group" aria-label="Mountain view">
-          <button type="button" aria-label="Rotate mountain left" onClick={() => controls.current(-1)}><ChevronLeft size={19} /></button>
-          <button type="button" aria-label="Reset mountain view" onClick={() => controls.current(0)}><LocateFixed size={16} /></button>
-          <button type="button" aria-label="Rotate mountain right" onClick={() => controls.current(1)}><ChevronRight size={19} /></button>
-        </div>
+      <figcaption className="mountain-location">
+        <strong><MapPin size={15} /> Mount Pulag</strong>
+        <span>{pulagSummit.latitude.toFixed(4)}° N / {pulagSummit.longitude.toFixed(4)}° E</span>
       </figcaption>
+      <div className="mountain-checkpoints" role="group" aria-label="Trail checkpoints">
+        {checkpoints.map((checkpoint, index) => (
+          <button
+            key={checkpoint.title}
+            ref={(element) => { markers.current[index] = element; }}
+            type="button"
+            className="mountain-checkpoint"
+            aria-label={checkpoint.title}
+            aria-pressed={selected === index}
+            data-reached={index <= selected}
+            style={{ left: (19 + index * 8) + '%', top: (82 - index * 13) + '%' }}
+            onClick={() => onSelect(index)}
+          >
+            <span className="checkpoint-dot" aria-hidden="true">{index + 1}</span>
+            <span className="checkpoint-label" aria-hidden="true">{checkpoint.title}</span>
+          </button>
+        ))}
+      </div>
+      <a className="terrain-credit" href="https://github.com/tilezen/joerd/blob/master/docs/attribution.md" target="_blank" rel="noreferrer">Mapzen · SRTM / USGS</a>
     </figure>
   );
 }

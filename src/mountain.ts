@@ -1,194 +1,229 @@
-type Ridge = { x: number; z: number; height: number; width: number; depth: number };
+import { pulagElevations } from './pulagElevation';
 
-const ridges: Ridge[] = [
-  { x: -0.21, z: -0.23, height: 1.48, width: 0.83, depth: 0.76 },
-  { x: 0.48, z: -0.38, height: 1.08, width: 0.92, depth: 0.71 },
-  { x: -0.79, z: 0.07, height: 0.82, width: 0.69, depth: 0.80 },
-  { x: 0.95, z: -0.12, height: 0.65, width: 0.63, depth: 0.83 },
-  { x: 0.17, z: 0.55, height: 0.47, width: 0.79, depth: 0.72 },
-];
+export type TerrainPosition = { x: number; z: number };
+export type MountainView = { yaw: number; pitch: number; zoom: number; lift: number };
 
-const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+type ProjectedPoint = { x: number; y: number; depth: number };
+type TerrainVertex = { x: number; y: number; z: number };
+type TerrainCell = { a: number; b: number; c: number; d: number; shade: string };
 
-function noise(x: number, z: number) {
-  return Math.sin(11.7 * x + 4.8 * z) * Math.cos(9.1 * z - 3.4 * x) * 0.57
-    + Math.sin(27.1 * x - 6.6 * z) * Math.cos(19.2 * z + 7.1 * x) * 0.29
-    + Math.sin(63.3 * x + 31.9 * z) * Math.cos(48.1 * z - 19.1 * x) * 0.14;
+const size = pulagElevations.length;
+const edge = size - 1;
+const clamp = (value: number, min = 0, max = 1) => Math.min(max, Math.max(min, value));
+
+function summitHeight({ x, z }: TerrainPosition) {
+  const row = Math.min(Math.floor(z), edge - 1);
+  const column = Math.min(Math.floor(x), edge - 1);
+  const dx = x - column;
+  const dz = z - row;
+  const a = pulagElevations[row][column];
+  const b = pulagElevations[row][column + 1];
+  const c = pulagElevations[row + 1][column];
+  const d = pulagElevations[row + 1][column + 1];
+  const altitude = (a * (1 - dx) + b * dx) * (1 - dz) + (c * (1 - dx) + d * dx) * dz;
+  const radius = Math.hypot(2 * x / edge - 1, 2 * z / edge - 1);
+  const apron = clamp((1.16 - radius) / 0.46);
+  return Math.max(0, (altitude - 1330) / 970) * apron ** 1.18;
 }
 
-function elevation(x: number, z: number) {
-  const warp = noise(x * 0.76, z * 0.76);
-  const height = ridges.reduce((maximum, ridge) => {
-    const dx = (x - ridge.x + warp * 0.09) / ridge.width;
-    const dz = (z - ridge.z - warp * 0.06) / ridge.depth;
-    const distance = Math.sqrt(dx * dx + dz * dz + dx * dz * 0.44);
-    return Math.max(maximum, ridge.height * Math.max(0, 1 - distance * 0.79) ** 1.17);
-  }, 0);
-
-  const detail = 0.20 * noise(x, z) + 0.08 * noise(x * 2, z * 2);
-  const face = 0.13 * Math.abs(Math.sin(x * 8.5 + z * 3.3)) * (0.5 + Math.sin(z * 6) * 0.5);
-  return Math.max(0, height + (detail - face) * Math.min(1, height * 3));
+function vertex(point: TerrainPosition): TerrainVertex {
+  return {
+    x: (2 * point.x / edge - 1) * 1.67,
+    y: summitHeight(point) * 1.2,
+    z: (2 * point.z / edge - 1) * 1.52,
+  };
 }
 
-type Cell = { a: number; b: number; c: number; d: number; height: number; light: number; grain: number; id: number };
+const vertices = Array.from({ length: size * size }, (_, index) => vertex({
+  x: index % size,
+  z: Math.floor(index / size),
+}));
 
-function makeMesh(segments: number) {
-  const vertices: { x: number; y: number; z: number }[] = [];
-  const cells: Cell[] = [];
-  const stride = segments + 1;
-  const dx = 3.5 / segments;
-  const dz = 2.75 / segments;
+const cells: TerrainCell[] = [];
+for (let row = 0; row < edge; row++) {
+  for (let col = 0; col < edge; col++) {
+    const a = row * size + col;
+    const b = a + 1;
+    const c = b + size;
+    const d = a + size;
+    const height = (vertices[a].y + vertices[b].y + vertices[c].y + vertices[d].y) / 4;
+    if (height < 0.04) continue;
 
-  for (let row = 0; row <= segments; row++) {
-    for (let col = 0; col <= segments; col++) {
-      const x = col * dx - 1.75;
-      const z = row * dz - 1.375;
-      const y = elevation(x, z);
-      vertices.push({ x, y: Math.round(y * 90) / 90, z });
-    }
+    const slopeX = (vertices[b].y + vertices[c].y - vertices[a].y - vertices[d].y) * edge / 6.68;
+    const slopeZ = (vertices[d].y + vertices[c].y - vertices[a].y - vertices[b].y) * edge / 6.08;
+    const lighting = (-0.67 * slopeX + 0.64 - 0.38 * slopeZ) / Math.hypot(slopeX, 1, slopeZ);
+    const shade = Math.round(clamp(0.21 + lighting * 0.48 + height * 0.233, 0.04, 0.98) * 255);
+    cells.push({ a, b, c, d, shade: 'rgb(' + shade + ',' + shade + ',' + shade + ')' });
   }
-
-  for (let row = 0; row < segments; row++) {
-    for (let col = 0; col < segments; col++) {
-      const a = row * stride + col;
-      const b = a + 1;
-      const c = b + stride;
-      const d = a + stride;
-      const height = (vertices[a].y + vertices[b].y + vertices[c].y + vertices[d].y) / 4;
-      if (height < 0.033) continue;
-
-      const slopeX = (vertices[b].y + vertices[c].y - vertices[a].y - vertices[d].y) / (2 * dx);
-      const slopeZ = (vertices[d].y + vertices[c].y - vertices[a].y - vertices[b].y) / (2 * dz);
-      const normalLength = Math.hypot(slopeX, 1, slopeZ);
-      const light = (-0.62 * slopeX + 0.67 - 0.41 * slopeZ) / normalLength;
-      const grain = (Math.sin((row * 14.33 + col * 79.17) * 12.9898) + 1) * 0.5;
-      cells.push({ a, b, c, d, height, light, grain, id: cells.length });
-    }
-  }
-  return { vertices, cells };
 }
 
-const desktopMesh = makeMesh(75);
-const compactMesh = makeMesh(59);
+const glyphs = ['.', ':', ';', '·', '+', '=', 'x', '*', 'o', '#', '%', '@'];
+const mossInk = ['#425b51', '#52735d', '#688b67', '#81a572', '#a0bb7b', '#b8d68c', '#dcebb0', '#eff2c8'];
+const lightInk = ['#809286', '#73866f', '#60775f', '#526e53', '#426242', '#345537', '#284630', '#243b2b'];
 
-type RGB = [number, number, number];
-
-function mix(from: RGB, to: RGB, amount: number): RGB {
-  return [
-    from[0] + (to[0] - from[0]) * amount,
-    from[1] + (to[1] - from[1]) * amount,
-    from[2] + (to[2] - from[2]) * amount,
-  ];
+function trailBetween(positions: readonly TerrainPosition[]) {
+  return positions.slice(1).map((end, index) => {
+    const start = positions[index];
+    return Array.from({ length: 15 }, (_, step) => {
+      const m = step / 14;
+      const x = start.x + (end.x - start.x) * m;
+      const z = start.z + (end.z - start.z) * m;
+      const point = vertex({ x, z });
+      return { ...point, y: point.y + 0.019 };
+    });
+  });
 }
 
-function colorFor(cell: Cell, lightTheme: boolean) {
-  const brightness = clamp((cell.light + 0.36) * 0.77 + (cell.grain - 0.5) * 0.27, 0, 1);
-  const altitude = clamp((cell.height - 0.12) / 1.18, 0, 1);
-  const shadow: RGB = lightTheme ? [42, 69, 67] : [12, 28, 33];
-  const grass: RGB = lightTheme ? [123, 145, 88] : [126, 153, 106];
-  const summit: RGB = lightTheme ? [235, 235, 187] : [233, 247, 193];
-  const lit = mix(grass, summit, Math.max(0, (altitude - 0.24) / 0.76) ** 0.88);
-  const color = mix(shadow, lit, clamp(brightness * 0.80 + altitude * 0.29, 0, 1));
-  return 'rgba(' + color.map(Math.round).join(',') + ',' + clamp(cell.height * 3.5 + 0.32, 0, 1) + ')';
-}
-
-export type MountainView = { yaw: number; pitch: number };
-
-export function createMountainRenderer(canvas: HTMLCanvasElement, lightTheme: boolean) {
+export function createMountainRenderer(
+  canvas: HTMLCanvasElement,
+  light: boolean,
+  positions: readonly TerrainPosition[],
+) {
   const context = canvas.getContext('2d');
-  if (!context) return;
+  const sample = document.createElement('canvas');
+  const sampler = sample.getContext('2d', { willReadFrequently: true });
+  if (!context || !sampler) return;
+  const ctx = context;
+  const raster = sampler;
 
+  const trail = trailBetween(positions);
+  const markers = positions.map((point) => {
+    const anchor = vertex(point);
+    return { ...anchor, y: anchor.y + 0.019 };
+  });
+  const ink = light ? lightInk : mossInk;
+  const order = [...cells];
+  const points: ProjectedPoint[] = vertices.map(() => ({ x: 0, y: 0, depth: 0 }));
   let width = 0;
   let height = 0;
-  let scale = 0;
-  let centerX = 0;
-  let centerY = 0;
-  let mesh = desktopMesh;
-  let colors = mesh.cells.map((cell) => colorFor(cell, lightTheme));
-  let screenX = new Float32Array(mesh.vertices.length);
-  let screenY = new Float32Array(mesh.vertices.length);
-  let depth = new Float32Array(mesh.vertices.length);
-  let ordered = [...mesh.cells];
 
   function resize() {
     width = canvas.clientWidth;
     height = canvas.clientHeight;
-    const ratio = Math.min(window.devicePixelRatio || 1, 1.7);
+    const ratio = Math.min(window.devicePixelRatio || 1, 2);
     canvas.width = Math.round(width * ratio);
     canvas.height = Math.round(height * ratio);
-    context!.setTransform(ratio, 0, 0, ratio, 0, 0);
-    const compact = width < 550;
-    scale = Math.min(width / (compact ? 3.59 : 3.76), height / 2.58);
-    centerX = width * 0.51;
-    centerY = height * (compact ? 0.64 : 0.655);
-
-    const nextMesh = compact ? compactMesh : desktopMesh;
-    if (mesh !== nextMesh) {
-      mesh = nextMesh;
-      colors = mesh.cells.map((cell) => colorFor(cell, lightTheme));
-      screenX = new Float32Array(mesh.vertices.length);
-      screenY = new Float32Array(mesh.vertices.length);
-      depth = new Float32Array(mesh.vertices.length);
-      ordered = [...mesh.cells];
-    }
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    const compact = width < 530;
+    sample.width = Math.max(1, Math.round(width / (compact ? 4.75 : 6.3)));
+    sample.height = Math.max(1, Math.round(height / (compact ? 6.75 : 8.5)));
   }
 
-  function draw({ yaw, pitch }: MountainView) {
-    const ctx = context!;
-    if (!width || !height) return;
+  function draw(view: MountainView, selected: number) {
+    if (!width || !height) return [];
 
-    const cosYaw = Math.cos(yaw);
-    const sinYaw = Math.sin(yaw);
-    const cosPitch = Math.cos(pitch);
-    const sinPitch = Math.sin(pitch);
-    function project(x: number, y: number, z: number) {
-      const sideways = x * cosYaw + z * sinYaw;
-      const forward = z * cosYaw - x * sinYaw;
-      const distance = forward * cosPitch + y * sinPitch;
-      const perspective = 1 / (1 - distance * 0.14);
-      return [
-        centerX + sideways * scale * perspective,
-        centerY + (forward * sinPitch - y * cosPitch) * scale * perspective,
-        distance,
-      ];
+    const cosYaw = Math.cos(view.yaw);
+    const sinYaw = Math.sin(view.yaw);
+    const cosPitch = Math.cos(view.pitch);
+    const sinPitch = Math.sin(view.pitch);
+    const preferredScale = Math.min(width / 4.18, height / 2.37) * view.zoom;
+    const centerX = width * 0.52;
+    const centerY = height * ((width < 530 ? 0.605 : 0.655) + view.lift * 0.65);
+    const glyphWidth = width / sample.width;
+    const glyphHeight = height / sample.height;
+
+    function projectOffset(point: TerrainVertex, result: ProjectedPoint = { x: 0, y: 0, depth: 0 }) {
+      const sideways = point.x * cosYaw + point.z * sinYaw;
+      const forward = point.z * cosYaw - point.x * sinYaw;
+      result.depth = forward * cosPitch + point.y * sinPitch;
+      const perspective = 1 / (1 - result.depth * 0.1);
+      result.x = sideways * perspective;
+      result.y = (forward * sinPitch - point.y * cosPitch) * perspective;
+      return result;
     }
 
+    raster.clearRect(0, 0, sample.width, sample.height);
+    let west = 0;
+    let east = 0;
+    let north = 0;
+    let south = 0;
+    for (let i = 0; i < vertices.length; i++) {
+      const point = projectOffset(vertices[i], points[i]);
+      if (vertices[i].y < 0.035) continue;
+      west = Math.min(west, point.x);
+      east = Math.max(east, point.x);
+      north = Math.min(north, point.y);
+      south = Math.max(south, point.y);
+    }
+
+    const topInset = Math.min(height * 0.21, 66);
+    const bottomInset = Math.min(height * 0.1, 32);
+    const sideInset = Math.min(width * 0.035, 25);
+    const scale = Math.min(
+      preferredScale,
+      (centerX - sideInset) / Math.max(-west, 0.01),
+      (width - centerX - sideInset) / Math.max(east, 0.01),
+      (centerY - topInset) / Math.max(-north, 0.01),
+      (height - centerY - bottomInset) / Math.max(south, 0.01),
+    );
+
+    function toScreen(point: ProjectedPoint) {
+      point.x = centerX + point.x * scale;
+      point.y = centerY + point.y * scale;
+      return point;
+    }
+
+    function project(point: TerrainVertex) {
+      return toScreen(projectOffset(point));
+    }
+
+    for (const point of points) toScreen(point);
+    order.sort((first, second) => points[first.a].depth + points[first.c].depth - points[second.a].depth - points[second.c].depth);
+
+    for (const cell of order) {
+      const a = points[cell.a];
+      const b = points[cell.b];
+      const c = points[cell.c];
+      const d = points[cell.d];
+      raster.beginPath();
+      raster.moveTo(a.x / glyphWidth, a.y / glyphHeight);
+      raster.lineTo(b.x / glyphWidth, b.y / glyphHeight);
+      raster.lineTo(c.x / glyphWidth, c.y / glyphHeight);
+      raster.lineTo(d.x / glyphWidth, d.y / glyphHeight);
+      raster.closePath();
+      raster.fillStyle = cell.shade;
+      raster.fill();
+    }
+
+    const pixels = raster.getImageData(0, 0, sample.width, sample.height).data;
     ctx.clearRect(0, 0, width, height);
-    for (let z = -1.65; z <= 1.65; z += 0.15) {
-      for (let x = -2; x <= 2; x += 0.15) {
-        const [px, py] = project(x, 0, z);
-        const opacity = clamp(1 - Math.hypot(x * 0.39, z * 0.44), 0, 1) * (lightTheme ? 0.32 : 0.38);
-        ctx.fillStyle = lightTheme ? 'rgba(48,81,69,' + opacity + ')' : 'rgba(145,178,151,' + opacity + ')';
-        ctx.fillRect(Math.round(px), Math.round(py), 1.3, 1.3);
+    ctx.font = (glyphHeight * 1.04).toFixed(2) + 'px "Cascadia Mono", "Courier New", monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    for (let row = 0; row < sample.height; row++) {
+      for (let col = 0; col < sample.width; col++) {
+        const p = (row * sample.width + col) * 4;
+        if (pixels[p + 3] < 0.37 * 255) continue;
+        const grain = ((col * 53 + row * 151 + col * row * 7) % 97) / 97;
+        const tone = clamp(pixels[p] / 255 + (grain - 0.5) * 0.24);
+        const glyph = glyphs[Math.min(glyphs.length - 1, Math.round(tone * (glyphs.length - 1)))];
+        if (tone < 0.22 && grain < 0.35) continue;
+        ctx.fillStyle = ink[Math.min(ink.length - 1, Math.round(tone * (ink.length - 1)))];
+        ctx.fillText(glyph, (col + 0.5) * glyphWidth, (row + 0.5) * glyphHeight);
       }
     }
 
-    for (let i = 0; i < mesh.vertices.length; i++) {
-      const { x, y, z } = mesh.vertices[i];
-      const [px, py, distance] = project(x, y, z);
-      screenX[i] = px;
-      screenY[i] = py;
-      depth[i] = distance;
-    }
-
-    ordered.sort((first, second) => (depth[first.a] + depth[first.c]) - (depth[second.a] + depth[second.c]));
-    for (const cell of ordered) {
-      const { a, b, c, d } = cell;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    for (let i = 0; i < trail.length; i++) {
+      const route = trail[i].map((point) => project(point));
       ctx.beginPath();
-      ctx.moveTo(screenX[a], screenY[a]);
-      ctx.lineTo(screenX[b], screenY[b]);
-      ctx.lineTo(screenX[c], screenY[c]);
-      ctx.lineTo(screenX[d], screenY[d]);
-      ctx.closePath();
-      ctx.fillStyle = colors[cell.id];
-      ctx.fill();
-
-      if (cell.grain > 0.79 && cell.height > 0.09) {
-        ctx.fillStyle = lightTheme ? 'rgba(225,235,183,0.48)' : 'rgba(228,248,198,0.51)';
-        const size = width < 550 ? 1.0 : 1.6;
-        ctx.fillRect(Math.round((screenX[a] + screenX[c]) / 2), Math.round((screenY[a] + screenY[c]) / 2), size, size);
-      }
+      ctx.moveTo(route[0].x, route[0].y);
+      for (const { x, y } of route.slice(1)) ctx.lineTo(x, y);
+      ctx.lineWidth = 3.3;
+      ctx.strokeStyle = light ? '#e0ebd6' : '#111a19';
+      ctx.stroke();
+      ctx.lineWidth = 1.25;
+      ctx.setLineDash([2, 4]);
+      ctx.strokeStyle = i < selected
+        ? (light ? '#334b24' : '#dbef8f')
+        : (light ? '#72905c' : '#95a87b');
+      ctx.stroke();
+      ctx.setLineDash([]);
     }
+
+    return markers.map((point) => project(point));
   }
 
   return { resize, draw };

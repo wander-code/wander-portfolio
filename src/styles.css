@@ -163,7 +163,7 @@ h2 { font: 650 clamp(2.8rem, 5.3vw, 5rem)/0.96 var(--heading); letter-spacing: -
 .project-card-link { display: flex; flex-direction: column; height: 100%; }
 .project-card-text { display: flex; flex: 1; flex-direction: column; align-items: start; padding: 24px; gap: 9px; }
 .project-card-text .eyebrow { color: var(--accent); }
-.project-card-text h3 { font: 650 clamp(2rem, 4vw, 3.15rem)/0.95 var(--heading); }
+.project-card-text h2 { font: 650 clamp(2rem, 4vw, 3.15rem)/0.95 var(--heading); }
 .project-card-text p:not(.eyebrow) { color: var(--muted); line-height: 1.54; }
 .project-cta { color: var(--accent); padding-top: 11px; margin-top: auto; font-weight: 700; font-size: 0.89rem; }
 .project-card-link:hover .project-cta { text-decoration: underline; text-underline-offset: 3px; }

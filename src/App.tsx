@@ -1,7 +1,8 @@
 import { Github, Mail, Mountain, Moon, Sun } from 'lucide-react';
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
-import { Link, Route, Routes, useLocation, useParams } from 'react-router-dom';
+import { useEffect, useState, type CSSProperties } from 'react';
+import { Link, Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom';
 import { BoopDemo } from './BoopDemo';
+import { checkpoints } from './checkpoints';
 import { MountainScene } from './MountainScene';
 import { ProjectMap } from './ProjectMap';
 import { projectPath, projects, type ProjectCategory } from './projects';
@@ -9,6 +10,17 @@ import { projectPath, projects, type ProjectCategory } from './projects';
 const categories: ('All' | ProjectCategory)[] = ['All', 'Systems', 'Games', 'Tools'];
 const github = 'https://github.com/wander-code';
 const email = 'mailto:wanderer.migs@gmail.com';
+const legacySections: Record<string, string> = {
+  '#work': '/projects',
+  '#about': '/qualifications',
+  '#qualifications': '/qualifications',
+  '#contact': '/contact',
+};
+const pageTitles: Record<string, string> = {
+  '/projects': 'Projects',
+  '/qualifications': 'Qualifications',
+  '/contact': 'Contact',
+};
 
 function ProjectArt({ id }: { id: string }) {
   return (
@@ -22,88 +34,116 @@ function ProjectArt({ id }: { id: string }) {
 }
 
 function Home({ light }: { light: boolean }) {
-  const trail = useRef<HTMLElement>(null);
   const { hash } = useLocation();
+  const [selected, setSelected] = useState(0);
+  const route = legacySections[hash];
+  if (route) return <Navigate to={route} replace />;
+  const checkpoint = checkpoints[selected];
+
+  return (
+    <main id="main" tabIndex={-1} className="home-page">
+      <section className="trail-hero" aria-labelledby="hero-title">
+        <div className="trail-sidebar">
+          <nav className="trail-nav" aria-label="Main navigation">
+            <Link to="/projects">Projects</Link>
+            <Link to="/qualifications">Qualifications</Link>
+            <Link to="/contact">Contact</Link>
+          </nav>
+          <div className="trail-identity">
+            <p className="trail-name">Tomas Capili</p>
+            <h1 id="hero-title">Wander<span>.</span></h1>
+            <p className="trail-intro">Software engineering student, an endurance mountaineer in the Philippines.</p>
+          </div>
+          <section className="checkpoint-summary" aria-label="Selected checkpoint" aria-live="polite">
+            <p className="checkpoint-stage">{checkpoint.stage}</p>
+            <h2>{checkpoint.title}</h2>
+            <p className="checkpoint-detail">{checkpoint.detail}</p>
+          </section>
+
+        </div>
+        <MountainScene light={light} selected={selected} onSelect={setSelected} />
+      </section>
+    </main>
+  );
+}
+
+function ProjectsPage({ light }: { light: boolean }) {
   const [category, setCategory] = useState<(typeof categories)[number]>('All');
   const filtered = category === 'All' ? projects : projects.filter((project) => project.category === category);
 
   return (
-    <main id="main" tabIndex={-1}>
-      <section ref={trail} className="trail-hero" aria-labelledby="hero-title">
-        <nav className="trail-nav" aria-label="Main navigation">
-          <Link to="/#work" aria-current={hash === '#work' ? 'location' : undefined}>Projects</Link>
-          <Link to="/#qualifications" aria-current={hash === '#qualifications' ? 'location' : undefined}>Qualifications</Link>
-          <Link to="/#contact" aria-current={hash === '#contact' ? 'location' : undefined}>Contact</Link>
-        </nav>
-        <div className="trail-identity">
-          <p className="trail-name">Tomas Capili</p>
-          <h1 id="hero-title">Wander<span>.</span></h1>
-          <p className="trail-intro">Software engineering student and hiker in the Philippines.</p>
-        </div>
-        <MountainScene light={light} hero={trail} />
-      </section>
-
-      <div className="shell">
-        <section className="work-section" id="work" tabIndex={-1} aria-labelledby="work-title">
-          <div className="section-heading">
-            <h2 id="work-title">Projects<span>.</span></h2>
-            <div className="filter-list" role="group" aria-label="Filter projects">
-              {categories.map((option) => (
-                <button key={option} type="button" aria-pressed={category === option} onClick={() => setCategory(option)}>{option}</button>
-              ))}
-            </div>
-          </div>
-          <p className="visually-hidden" role="status">{filtered.length} projects shown</p>
-          <div className="project-grid">
-            {filtered.map((project) => (
-              <article key={project.id} className="project-card" style={{ '--project-color': project.color } as CSSProperties}>
-                <Link to={projectPath(project)} className="project-card-link" aria-label={project.title + ' case study'}>
-                  <ProjectArt id={project.id} />
-                  <div className="project-card-text">
-                    <p className="eyebrow">{project.discipline}</p>
-                    <h3>{project.title}</h3>
-                    <p>{project.summary}</p>
-                    <span className="project-cta">View case study</span>
-                  </div>
-                </Link>
-              </article>
+    <main id="main" tabIndex={-1} className="shell portfolio-page">
+      <section className="work-section" id="work" tabIndex={-1} aria-labelledby="work-title">
+        <div className="section-heading">
+          <h1 id="work-title">Projects<span>.</span></h1>
+          <div className="filter-list" role="group" aria-label="Filter projects">
+            {categories.map((option) => (
+              <button key={option} type="button" aria-pressed={category === option} onClick={() => setCategory(option)}>{option}</button>
             ))}
           </div>
-          <details className="project-map-disclosure">
-            <summary>Explore the project map</summary>
-            <ProjectMap light={light} />
-          </details>
-        </section>
+        </div>
+        <p className="visually-hidden" role="status">{filtered.length} projects shown</p>
+        <div className="project-grid">
+          {filtered.map((project) => (
+            <article key={project.id} className="project-card" style={{ '--project-color': project.color } as CSSProperties}>
+              <Link to={projectPath(project)} className="project-card-link" aria-label={project.title + ' case study'}>
+                <ProjectArt id={project.id} />
+                <div className="project-card-text">
+                  <p className="eyebrow">{project.discipline}</p>
+                  <h2>{project.title}</h2>
+                  <p>{project.summary}</p>
+                  <span className="project-cta">View case study</span>
+                </div>
+              </Link>
+            </article>
+          ))}
+        </div>
+        <details className="project-map-disclosure">
+          <summary>Explore the project map</summary>
+          <ProjectMap light={light} />
+        </details>
+      </section>
+    </main>
+  );
+}
 
-        <section className="qualifications-section" id="qualifications" tabIndex={-1} aria-labelledby="qualifications-title">
-          <h2 id="qualifications-title">Qualifications<span>.</span></h2>
-          <div className="qualification-list">
-            <article>
-              <h3>Education</h3>
-              <p>Software engineering student at FEU Institute of Technology.</p>
-            </article>
-            <article>
-              <h3>Technical skills</h3>
-              <p>C++ and Python are my strongest languages. My projects cover backend engineering, optimization, Android development, and language design.</p>
-            </article>
-            <article>
-              <h3>Leadership</h3>
-              <p>I led the four-person DotEXE thesis team and handled technical operations for ARTwakening across three academic terms.</p>
-            </article>
-          </div>
-        </section>
+function QualificationsPage() {
+  return (
+    <main id="main" tabIndex={-1} className="shell portfolio-page">
+      <section className="qualifications-section" id="qualifications" tabIndex={-1} aria-labelledby="qualifications-title">
+        <h1 id="qualifications-title">Qualifications<span>.</span></h1>
+        <div className="qualification-list">
+          <article>
+            <h2>Education</h2>
+            <p>Software engineering student at FEU Institute of Technology.</p>
+          </article>
+          <article>
+            <h2>Technical skills</h2>
+            <p>C++ and Python are my strongest languages. My projects cover backend engineering, optimization, Android development, and language design.</p>
+          </article>
+          <article>
+            <h2>Leadership</h2>
+            <p>I led the four-person DotEXE thesis team and handled technical operations for ARTwakening across three academic terms.</p>
+          </article>
+        </div>
+      </section>
+    </main>
+  );
+}
 
-        <section className="contact-section" id="contact" tabIndex={-1} aria-labelledby="contact-title">
-          <div>
-            <h2 id="contact-title">Contact<span>.</span></h2>
-            <p>Get in touch about software engineering, a project, or a good trail.</p>
-          </div>
-          <div className="trail-contact-links">
-            <a className="primary-button" href={email}><Mail size={18} /> Email me</a>
-            <a className="secondary-button" href={github}><Github size={18} /> GitHub</a>
-          </div>
-        </section>
-      </div>
+function ContactPage() {
+  return (
+    <main id="main" tabIndex={-1} className="shell portfolio-page">
+      <section className="contact-section" id="contact" tabIndex={-1} aria-labelledby="contact-title">
+        <div>
+          <h1 id="contact-title">Contact<span>.</span></h1>
+          <p>Get in touch about software engineering, a project, or a good trail.</p>
+        </div>
+        <div className="trail-contact-links">
+          <a className="primary-button" href={email}><Mail size={18} /> Email me</a>
+          <a className="secondary-button" href={github}><Github size={18} /> GitHub</a>
+        </div>
+      </section>
     </main>
   );
 }
@@ -117,7 +157,7 @@ function CaseStudy() {
 
   return (
     <main id="main" tabIndex={-1} className="shell case-page" style={{ '--project-color': project.color } as CSSProperties}>
-      <Link className="back-link" to="/#work">All projects</Link>
+      <Link className="back-link" to="/projects">All projects</Link>
       <section className="case-hero" aria-labelledby="case-title">
         <div>
           <p className="eyebrow">{project.discipline}</p>
@@ -151,21 +191,15 @@ function NotFound() {
 }
 
 function usePageNavigation() {
-  const { pathname, hash } = useLocation();
+  const { pathname } = useLocation();
 
   useEffect(() => {
     const project = projects.find((entry) => projectPath(entry) === pathname);
-    document.title = project ? `${project.title} — Tomas Capili` : 'Wander — Tomas Capili';
-
-    const anchor = hash === '#about' ? 'qualifications' : hash.slice(1);
-    const target = document.getElementById(anchor || 'main');
-    if (hash && target) {
-      target.scrollIntoView();
-    } else {
-      window.scrollTo(0, 0);
-    }
-    target?.focus({ preventScroll: true });
-  }, [pathname, hash]);
+    const title = project?.title ?? pageTitles[pathname] ?? 'Wander';
+    document.title = title + ' — Tomas Capili';
+    window.scrollTo(0, 0);
+    document.getElementById('main')?.focus({ preventScroll: true });
+  }, [pathname]);
 }
 
 function initialTheme() {
@@ -179,6 +213,7 @@ function initialTheme() {
 export function App() {
   const [light, setLight] = useState(initialTheme);
   const { pathname } = useLocation();
+  const onHome = pathname === '/';
   usePageNavigation();
 
   useEffect(() => {
@@ -193,16 +228,16 @@ export function App() {
   }, [light]);
 
   return (
-    <>
+    <div className={onHome ? 'home-frame' : undefined}>
       <button type="button" className="skip-link" onClick={() => document.getElementById('main')?.focus()}>Skip to content</button>
-      <header className={pathname === '/' ? 'site-header site-header-home' : 'site-header'}>
+      <header className={onHome ? 'site-header site-header-home' : 'site-header'}>
         <div className="shell header-content">
           <Link className="brand" to="/" aria-label="Wander Code home"><Mountain size={22} /> <span>WANDER<span className="brand-divider">/</span>CODE</span></Link>
-          {pathname !== '/' && (
+          {!onHome && (
             <nav aria-label="Main navigation">
-              <Link to="/#work" aria-current={pathname.startsWith('/projects/') ? 'true' : undefined}>Projects</Link>
-              <Link to="/#qualifications">Qualifications</Link>
-              <Link to="/#contact">Contact</Link>
+              <Link to="/projects" aria-current={pathname.startsWith('/projects') ? 'true' : undefined}>Projects</Link>
+              <Link to="/qualifications">Qualifications</Link>
+              <Link to="/contact">Contact</Link>
             </nav>
           )}
           <button type="button" className="theme-button" aria-label={light ? 'Switch to dark theme' : 'Switch to light theme'} onClick={() => setLight(!light)}>{light ? <Moon size={18} /> : <Sun size={19} />}</button>
@@ -210,16 +245,21 @@ export function App() {
       </header>
       <Routes>
         <Route path="/" element={<Home light={light} />} />
+        <Route path="/projects" element={<ProjectsPage light={light} />} />
+        <Route path="/qualifications" element={<QualificationsPage />} />
+        <Route path="/contact" element={<ContactPage />} />
         <Route path="/projects/:id" element={<CaseStudy />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
-      <footer className="site-footer">
-        <div className="shell footer-content">
-          <span>Tomas Capili</span>
-          <a href={github}><Github size={16} /> GitHub</a>
-          <Link to="/" onClick={() => window.scrollTo(0, 0)}>Back to top</Link>
-        </div>
-      </footer>
-    </>
+      {!onHome && (
+        <footer className="site-footer">
+          <div className="shell footer-content">
+            <span>Tomas Capili</span>
+            <a href={github}><Github size={16} /> GitHub</a>
+            <Link to="/">Back to Wander</Link>
+          </div>
+        </footer>
+      )}
+    </div>
   );
 }

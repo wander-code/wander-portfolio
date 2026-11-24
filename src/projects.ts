@@ -12,7 +12,6 @@ interface Project {
   status: string;
   tags: string[];
   color: string;
-  marker: [number, number];
   repository?: string;
 }
 
@@ -29,7 +28,6 @@ export const projects: Project[] = [
     status: 'Successfully defended. Final revisions and department sign-off are pending.',
     tags: ['Genetic algorithms', 'Backend', 'Forecasting'],
     color: '#daed7d',
-    marker: [0.56, 0.24],
   },
   {
     id: 'boop',
@@ -43,7 +41,6 @@ export const projects: Project[] = [
     status: 'Playable Android build shared with other players.',
     tags: ['Android', 'Game loop', 'Touch input'],
     color: '#c5a8f9',
-    marker: [0.77, 0.46],
   },
   {
     id: 'schedule-optimizer',
@@ -57,7 +54,6 @@ export const projects: Project[] = [
     status: 'Source available on GitHub.',
     tags: ['Constraints', 'Conflict detection', 'Testing'],
     color: '#86c9f4',
-    marker: [0.34, 0.55],
     repository: 'https://github.com/wander-code/FEUTECH-Scheduler',
   },
   {
@@ -69,10 +65,10 @@ export const projects: Project[] = [
     role: 'Independent developer',
     approach: 'A tokenizer breaks scripts into language elements and a parser interprets their structure. The language expresses the logic behind the interactive story.',
     contribution: 'I designed the scripting language and implemented its tokenizer and parser alongside the storytelling experience.',
-    status: 'Independent project.',
+    status: 'Source available on GitHub.',
     tags: ['Tokenization', 'Parsing', 'Storytelling'],
     color: '#f0ae87',
-    marker: [0.59, 0.67],
+    repository: 'https://github.com/wander-code/StarRuneSonders',
   },
 ];
 

@@ -1,10 +1,12 @@
 import { Github, Mail, Mountain, Moon, Sun } from 'lucide-react';
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Link, Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom';
-import { BoopDemo } from './BoopDemo';
+import boopLogo from './assets/boop/logo.png';
+import pastelGameplay from './assets/boop/pastel-gameplay.png';
+import sunflowerGameplay from './assets/boop/sunflower-gameplay.png';
 import { checkpoints } from './checkpoints';
 import { MountainScene } from './MountainScene';
-import { ProjectMap } from './ProjectMap';
+import { QualificationsPage } from './QualificationsPage';
 import { projectPath, projects, type ProjectCategory } from './projects';
 
 const categories: ('All' | ProjectCategory)[] = ['All', 'Systems', 'Games', 'Tools'];
@@ -26,7 +28,7 @@ function ProjectArt({ id }: { id: string }) {
   return (
     <div className={`project-art art-${id}`} aria-hidden="true">
       {id === 'dotexe' && <div className="art-stack"><i /><i /><i /><i /><i /></div>}
-      {id === 'boop' && <div className="art-bubbles"><i /><i /><i /><i /><i /></div>}
+      {id === 'boop' && <div className="boop-logo"><img src={boopLogo} width={720} height={1650} alt="" /></div>}
       {id === 'schedule-optimizer' && <div className="art-calendar"><i /><i /><i /><i /><i /></div>}
       {id === 'starrunesonders' && <div className="art-language"><span>{'{ '}</span><i>✦</i><span>{' }'}</span></div>}
     </div>
@@ -70,7 +72,7 @@ function Home({ light }: { light: boolean }) {
   );
 }
 
-function ProjectsPage({ light }: { light: boolean }) {
+function ProjectsPage() {
   const [category, setCategory] = useState<(typeof categories)[number]>('All');
   const filtered = category === 'All' ? projects : projects.filter((project) => project.category === category);
 
@@ -101,34 +103,6 @@ function ProjectsPage({ light }: { light: boolean }) {
             </article>
           ))}
         </div>
-        <details className="project-map-disclosure">
-          <summary>Explore the project map</summary>
-          <ProjectMap light={light} />
-        </details>
-      </section>
-    </main>
-  );
-}
-
-function QualificationsPage() {
-  return (
-    <main id="main" tabIndex={-1} className="shell portfolio-page">
-      <section className="qualifications-section" id="qualifications" tabIndex={-1} aria-labelledby="qualifications-title">
-        <h1 id="qualifications-title">Qualifications<span>.</span></h1>
-        <div className="qualification-list">
-          <article>
-            <h2>Education</h2>
-            <p>Software engineering student at FEU Institute of Technology.</p>
-          </article>
-          <article>
-            <h2>Technical skills</h2>
-            <p>C++ and Python are my strongest languages. My projects cover backend engineering, optimization, Android development, and language design.</p>
-          </article>
-          <article>
-            <h2>Leadership</h2>
-            <p>I led the four-person DotEXE thesis team and handled technical operations for ARTwakening across three academic terms.</p>
-          </article>
-        </div>
       </section>
     </main>
   );
@@ -151,6 +125,24 @@ function ContactPage() {
   );
 }
 
+function BoopGallery() {
+  return (
+    <section className="boop-gallery" aria-labelledby="boop-gallery-title">
+      <h2 id="boop-gallery-title">Gameplay screenshots</h2>
+      <div className="boop-gallery-grid">
+        <figure>
+          <div className="boop-screenshot"><img src={pastelGameplay} width={720} height={1650} alt="Numbered pastel targets with a score of 665 and two hearts left" loading="lazy" /></div>
+          <figcaption>Pastel targets</figcaption>
+        </figure>
+        <figure>
+          <div className="boop-screenshot"><img src={sunflowerGameplay} width={720} height={1650} alt="Numbered sunflowers above grass with a blue sky and three hearts" loading="lazy" /></div>
+          <figcaption>Sunflower targets</figcaption>
+        </figure>
+      </div>
+    </section>
+  );
+}
+
 function CaseStudy() {
   const { id } = useParams();
   const project = projects.find((entry) => entry.id === id);
@@ -170,6 +162,7 @@ function CaseStudy() {
         </div>
         <ProjectArt id={project.id} />
       </section>
+      {project.id === 'boop' && <BoopGallery />}
       <div className="case-body">
         <section><h2>What I built</h2><p>{project.approach}</p></section>
         <section>
@@ -183,7 +176,6 @@ function CaseStudy() {
           {project.repository && <a className="secondary-button" href={project.repository}><Github size={17} /> View source on GitHub</a>}
         </section>
       </div>
-      {project.id === 'boop' && <BoopDemo />}
       <Link className="next-project" to={projectPath(next)}><span className="eyebrow">Next project</span><strong>{next.title}</strong></Link>
     </main>
   );
@@ -248,7 +240,7 @@ export function App() {
       </header>
       <Routes>
         <Route path="/" element={<Home light={light} />} />
-        <Route path="/projects" element={<ProjectsPage light={light} />} />
+        <Route path="/projects" element={<ProjectsPage />} />
         <Route path="/qualifications" element={<QualificationsPage />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/projects/:id" element={<CaseStudy />} />

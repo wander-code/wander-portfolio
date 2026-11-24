@@ -52,10 +52,10 @@ function Home({ light }: { light: boolean }) {
       <section className="trail-hero" aria-labelledby="hero-title">
         <div className="trail-sidebar">
           <nav className="trail-nav" aria-label="Main navigation">
-            <Link target="_blank" rel="noopener" to="/" aria-current="page">Home</Link>
-            <Link target="_blank" rel="noopener" to="/projects">Projects</Link>
-            <Link target="_blank" rel="noopener" to="/about">About</Link>
-            <Link target="_blank" rel="noopener" to="/contact">Contact</Link>
+            <Link to="/" aria-current="page">Home</Link>
+            <Link to="/projects">Projects</Link>
+            <Link to="/about">About</Link>
+            <Link to="/contact">Contact</Link>
           </nav>
           <div ref={textOverlay} className="trail-copy">
             <div className="trail-identity">
@@ -95,7 +95,7 @@ function ProjectsPage() {
         <div className="project-grid">
           {filtered.map((project) => (
             <article key={project.id} className="project-card" style={{ '--project-color': project.color } as CSSProperties}>
-              <Link target="_blank" rel="noopener" to={projectPath(project)} className="project-card-link" aria-label={project.title + ' case study'}>
+              <Link to={projectPath(project)} className="project-card-link" aria-label={project.title + ' case study'}>
                 <ProjectArt id={project.id} />
                 <div className="project-card-text">
                   <p className="eyebrow">{project.discipline}</p>
@@ -157,7 +157,7 @@ function CaseStudy() {
 
   return (
     <main id="main" tabIndex={-1} className="shell case-page" style={{ '--project-color': project.color } as CSSProperties}>
-      <Link target="_blank" rel="noopener" className="back-link" to="/projects">All projects</Link>
+      <Link className="back-link" to="/projects">All projects</Link>
       <section className="case-hero" aria-labelledby="case-title">
         <div>
           <p className="eyebrow">{project.discipline}</p>
@@ -181,13 +181,13 @@ function CaseStudy() {
           {project.repository && <a className="secondary-button" target="_blank" rel="noopener" href={project.repository}><Github size={17} /> View source on GitHub</a>}
         </section>
       </div>
-      <Link target="_blank" rel="noopener" className="next-project" to={projectPath(next)}><span className="eyebrow">Next project</span><strong>{next.title}</strong></Link>
+      <Link className="next-project" to={projectPath(next)}><span className="eyebrow">Next project</span><strong>{next.title}</strong></Link>
     </main>
   );
 }
 
 function NotFound() {
-  return <main id="main" tabIndex={-1} className="shell case-page"><h1>Page missing.</h1><Link target="_blank" rel="noopener" className="back-link" to="/">Back to the portfolio</Link></main>;
+  return <main id="main" tabIndex={-1} className="shell case-page"><h1>Page missing.</h1><Link className="back-link" to="/">Back to the portfolio</Link></main>;
 }
 
 function usePageNavigation() {
@@ -232,12 +232,12 @@ export function App() {
       <button type="button" className="skip-link" onClick={() => document.getElementById('main')?.focus()}>Skip to content</button>
       <header className={onHome ? 'site-header site-header-home' : 'site-header'}>
         <div className="shell header-content">
-          <Link target="_blank" rel="noopener" className="brand" to="/" aria-label={fullName + ' home'}>{fullName}</Link>
+          <Link className="brand" to="/" aria-label={fullName + ' home'}>{fullName}</Link>
           {!onHome && (
             <nav aria-label="Main navigation">
-              <Link target="_blank" rel="noopener" to="/projects" aria-current={pathname.startsWith('/projects') ? 'true' : undefined}>Projects</Link>
-              <Link target="_blank" rel="noopener" to="/about" aria-current={pathname === '/about' ? 'page' : undefined}>About</Link>
-              <Link target="_blank" rel="noopener" to="/contact">Contact</Link>
+              <Link to="/projects" aria-current={pathname.startsWith('/projects') ? 'true' : undefined}>Projects</Link>
+              <Link to="/about" aria-current={pathname === '/about' ? 'page' : undefined}>About</Link>
+              <Link to="/contact">Contact</Link>
             </nav>
           )}
           <button type="button" className="theme-button" aria-label={light ? 'Switch to dark theme' : 'Switch to light theme'} onClick={() => setLight(!light)}>{light ? <Moon size={18} /> : <Sun size={19} />}</button>
@@ -257,7 +257,7 @@ export function App() {
           <div className="shell footer-content">
             <span>{fullName}</span>
             <a href={github} target="_blank" rel="noopener"><Github size={16} /> GitHub</a>
-            <Link target="_blank" rel="noopener" to="/">Back to Wander</Link>
+            <Link to="/">Back to Wander</Link>
           </div>
         </footer>
       )}

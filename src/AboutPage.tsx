@@ -85,7 +85,7 @@ export function AboutPage({ name }: { name: string }) {
           <h2 id="cv-projects-title">Selected projects</h2>
           <ul className="qualification-projects">
             {projects.map((project) => (
-              <li key={project.id}><Link target="_blank" rel="noopener" to={projectPath(project)}>{project.title}</Link><span>{project.role}</span></li>
+              <li key={project.id}><Link to={projectPath(project)}>{project.title}</Link><span>{project.role}</span></li>
             ))}
           </ul>
         </section>

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { internship } from './internship';
 import { projectPath, projects } from './projects';
 import './about.css';
 
@@ -55,7 +56,7 @@ export function AboutPage({ name }: { name: string }) {
 
         <section aria-labelledby="internship-title">
           <h2 id="internship-title">Internship</h2>
-          <p>Available December 2026 or January 2027 for a 520-hour OJT placement.</p>
+          <p>Available {internship.start} for a {internship.hours}-hour OJT placement.</p>
         </section>
 
         <section aria-labelledby="certifications-title">

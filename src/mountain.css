@@ -133,6 +133,20 @@
   line-height: 1.42;
 }
 
+.trail-availability {
+  margin-top: 10px;
+  color: var(--accent);
+  font-size: clamp(0.85rem, 1.23vw, 0.98rem);
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.trail-availability span {
+  display: block;
+  color: var(--muted);
+  font-weight: 500;
+}
+
 .mountain-scene {
   --scene-edge: #334640;
   --scene-ink: #becdba;
@@ -326,6 +340,23 @@
   gap: 10px;
 }
 
+.contact-email {
+  max-width: 100%;
+}
+
+.contact-email span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.contact-section .copy-status {
+  margin-top: 8px;
+  min-height: 1.45em;
+  max-width: none;
+  font-size: 0.875rem;
+  text-align: end;
+}
+
 @media (max-width: 740px) {
   .site-header-home .header-content {
     min-height: 52px;
@@ -411,6 +442,7 @@
 
 @media (max-width: 480px) {
   .trail-contact-links { justify-content: start; }
+  .contact-section .copy-status { text-align: start; }
 }
 
 @media (max-height: 600px) {
@@ -424,9 +456,26 @@
 }
 
 @media (max-height: 530px) and (orientation: landscape) {
-  .trail-copy { inset: auto auto 16px var(--home-gutter); width: min(32vw, 360px); }
-  .trail-identity h1 { font-size: clamp(3rem, 7vw, 5.5rem); }
-  .trail-nav { right: auto; }
+  .trail-copy { inset: auto auto 16px var(--home-gutter); width: min(48vw, 360px); gap: 6px; }
+  .trail-identity h1 { margin-block: 0 6px; font-size: clamp(2.65rem, 6vw, 5rem); }
+  .trail-name { display: none; }
+  .trail-intro { font-size: 0.88rem; }
+  .trail-availability { margin-top: 7px; font-size: 0.81rem; }
+  .checkpoint-detail { font-size: 0.83rem; }
+
+  .trail-nav {
+    display: flex;
+    flex-wrap: wrap;
+    width: fit-content;
+    right: var(--home-gutter);
+    gap: 0 13px;
+  }
+
+  .trail-nav a { font-size: 0.78rem; padding-block: 5px; }
+}
+
+@media (min-width: 540px) and (max-height: 350px) and (orientation: landscape) {
+  .trail-nav { top: 9px; left: auto; right: calc(var(--home-gutter) + 42px); }
 }
 
 @media (max-width: 355px) {

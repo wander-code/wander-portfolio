@@ -24,10 +24,10 @@ export const checkpoints = [
     view: { yaw: -1.14, pitch: 0.54, zoom: 1.09, lift: 0.022 },
   },
   {
-    title: 'Internship (hopefully one picks me)',
+    title: 'Open to internships',
     label: 'Internship',
     stage: 'Fourth year',
-    detail: 'I’m looking for a software engineering internship.',
+    detail: 'I’m looking for a team where I can build, test, and ship software.',
     position: { x: 55, z: 54 },
     view: { yaw: -1.04, pitch: 0.59, zoom: 1.135, lift: 0.032 },
   },

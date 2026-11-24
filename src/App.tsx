@@ -1,4 +1,4 @@
-import { Github, Linkedin, Mail, Moon, Sun } from 'lucide-react';
+import { Copy, Github, Linkedin, Mail, Moon, Sun } from 'lucide-react';
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Link, Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom';
 import boopLogo from './assets/boop/logo.png';
@@ -6,6 +6,7 @@ import pastelGameplay from './assets/boop/pastel-gameplay.png';
 import sunflowerGameplay from './assets/boop/sunflower-gameplay.png';
 import dotexeLogo from './assets/dotexe/logo.png';
 import { checkpoints } from './checkpoints';
+import { internship } from './internship';
 import { MountainScene } from './MountainScene';
 import { AboutPage } from './AboutPage';
 import { projectPath, projects, type ProjectCategory } from './projects';
@@ -13,7 +14,7 @@ import { projectPath, projects, type ProjectCategory } from './projects';
 const categories: ('All' | ProjectCategory)[] = ['All', 'Systems', 'Games', 'Tools'];
 const fullName = 'Tomas Miguel M. Capili';
 const github = 'https://github.com/wander-code';
-const email = 'wanderer.migs@gmail.com';
+const email = 'tomasmiguelcapili@gmail.com';
 const gmailComposeUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(email)}`;
 const linkedin = 'https://www.linkedin.com/in/tomas-miguel-capili-22246a330/';
 const legacySections: Record<string, string> = {
@@ -62,6 +63,10 @@ function Home({ light }: { light: boolean }) {
               <p className="trail-name">{fullName}</p>
               <h1 id="hero-title">Wander<span>.</span></h1>
               <p className="trail-intro">Software engineering student, an endurance mountaineer in the Philippines.</p>
+              <p className="trail-availability">
+                Open to a {internship.hours}-hour software engineering internship
+                <span>{internship.start}</span>
+              </p>
             </div>
             <section className="checkpoint-summary" aria-label="Selected checkpoint" aria-live="polite">
               <p className="checkpoint-stage">{checkpoint.stage}</p>
@@ -113,6 +118,17 @@ function ProjectsPage() {
 }
 
 function ContactPage() {
+  const [copyStatus, setCopyStatus] = useState('');
+
+  async function copyEmail() {
+    try {
+      await navigator.clipboard.writeText(email);
+      setCopyStatus('Email address copied.');
+    } catch {
+      setCopyStatus('Couldn’t copy the email address. You can select and copy it manually.');
+    }
+  }
+
   return (
     <main id="main" tabIndex={-1} className="shell portfolio-page">
       <section className="contact-section" id="contact" tabIndex={-1} aria-labelledby="contact-title">
@@ -120,10 +136,14 @@ function ContactPage() {
           <h1 id="contact-title">Contact<span>.</span></h1>
           <p>Get in touch about software engineering, a project, or a good trail.</p>
         </div>
-        <div className="trail-contact-links">
-          <a className="primary-button" href={gmailComposeUrl} target="_blank" rel="noopener"><Mail size={18} /> {email}</a>
-          <a className="secondary-button" target="_blank" rel="noopener" href={linkedin}><Linkedin size={18} /> LinkedIn</a>
-          <a className="secondary-button" target="_blank" rel="noopener" href={github}><Github size={18} /> GitHub</a>
+        <div className="contact-actions">
+          <div className="trail-contact-links">
+            <a className="primary-button contact-email" href={gmailComposeUrl} target="_blank" rel="noopener"><Mail size={18} /> <span>{email}</span></a>
+            <button className="secondary-button" type="button" onClick={copyEmail}><Copy size={18} /> Copy email</button>
+            <a className="secondary-button" target="_blank" rel="noopener" href={linkedin}><Linkedin size={18} /> LinkedIn</a>
+            <a className="secondary-button" target="_blank" rel="noopener" href={github}><Github size={18} /> GitHub</a>
+          </div>
+          <p className="copy-status" role="status">{copyStatus}</p>
         </div>
       </section>
     </main>

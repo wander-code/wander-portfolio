@@ -1,7 +1,8 @@
 import { MapPin } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type RefObject } from 'react';
 import { checkpoints } from './checkpoints';
-import { createMountainRenderer, pulagSummit, type MountainView } from './mountain';
+import { createMountainRenderer, type MountainView } from './mountain';
+import { pulagSummit } from './pulagElevation';
 import './mountain.css';
 
 const positions = checkpoints.map(({ position }) => position);
@@ -9,16 +10,18 @@ const cameraDuration = 510;
 
 function interpolate(from: MountainView, to: MountainView, progress: number): MountainView {
   return {
-    x: from.x + (to.x - from.x) * progress,
-    y: from.y + (to.y - from.y) * progress,
+    yaw: from.yaw + (to.yaw - from.yaw) * progress,
+    pitch: from.pitch + (to.pitch - from.pitch) * progress,
     zoom: from.zoom + (to.zoom - from.zoom) * progress,
+    lift: from.lift + (to.lift - from.lift) * progress,
   };
 }
 
-export function MountainScene({ light, selected, onSelect }: {
+export function MountainScene({ light, selected, onSelect, textOverlay }: {
   light: boolean;
   selected: number;
   onSelect: (index: number) => void;
+  textOverlay: RefObject<HTMLDivElement | null>;
 }) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const markers = useRef<(HTMLButtonElement | null)[]>([]);
@@ -28,7 +31,7 @@ export function MountainScene({ light, selected, onSelect }: {
   useEffect(() => {
     const surface = canvas.current;
     if (!surface) return;
-    const terrain = createMountainRenderer(surface, light, positions, paint);
+    const terrain = createMountainRenderer(surface, light, positions);
     if (!terrain) return;
 
     const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -36,7 +39,7 @@ export function MountainScene({ light, selected, onSelect }: {
     let animation = 0;
 
     function paint() {
-      const points = terrain!.draw(currentView.current, active);
+      const points = terrain!.draw(currentView.current, active, textOverlay.current?.offsetTop);
       points.forEach(({ x, y }, index) => {
         const marker = markers.current[index];
         if (!marker) return;
@@ -72,19 +75,19 @@ export function MountainScene({ light, selected, onSelect }: {
     };
     const observer = new ResizeObserver(resize);
     observer.observe(surface);
+    if (textOverlay.current) observer.observe(textOverlay.current);
     resize();
 
     return () => {
       observer.disconnect();
-      terrain.dispose();
       window.cancelAnimationFrame(animation);
       selectView.current = () => {};
     };
-  }, [light]);
+  }, [light, textOverlay]);
 
   useEffect(() => {
     selectView.current(selected);
-  }, [light, selected]);
+  }, [light, selected, textOverlay]);
 
   return (
     <figure className="mountain-scene" aria-label="Mount Pulag milestone trail">
@@ -93,7 +96,7 @@ export function MountainScene({ light, selected, onSelect }: {
         ref={canvas}
         className="mountain-canvas"
         role="img"
-        aria-label="Mount Pulag summit grasslands at dawn, rendered in text characters"
+        aria-label="Three-dimensional terrain of Mount Pulag rendered in text characters, with a trail up to the summit"
       />
       <figcaption className="mountain-location">
         <strong><MapPin size={15} /> Mount Pulag</strong>
@@ -117,10 +120,7 @@ export function MountainScene({ light, selected, onSelect }: {
           </button>
         ))}
       </div>
-      <div className="terrain-credit">
-        <a href="https://commons.wikimedia.org/wiki/File:Panoramic_Shot_of_Mt._Pulag_Summit_and_Grassland.jpg" target="_blank" rel="noreferrer">Dawn panorama · Bien02</a>
-        <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>
-      </div>
+      <a className="terrain-credit" href="https://github.com/tilezen/joerd/blob/master/docs/attribution.md" target="_blank" rel="noreferrer">Mapzen · SRTM / USGS</a>
     </figure>
   );
 }

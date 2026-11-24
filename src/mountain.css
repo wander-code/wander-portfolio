@@ -1,78 +1,89 @@
 .home-frame {
+  --home-gutter: clamp(18px, 2.8vw, 62px);
+  position: relative;
   height: 100svh;
   height: 100dvh;
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
   overflow: hidden;
 }
 
-.home-page {
-  min-height: 0;
-}
-
-.trail-hero,
-.site-header-home .header-content {
-  width: min(calc(100% - 96px), 1480px);
-  margin-inline: auto;
+.home-frame > .site-header {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 4;
+  border: 0;
+  pointer-events: none;
 }
 
 .site-header-home .header-content {
+  width: calc(100% - 2 * var(--home-gutter));
   grid-template-columns: 1fr auto;
 }
 
+.site-header-home .header-content > * {
+  pointer-events: auto;
+}
+
+.home-page,
 .trail-hero {
-  display: grid;
-  grid-template-columns: minmax(235px, 0.37fr) minmax(0, 1fr);
-  column-gap: clamp(16px, 3vw, 58px);
+  position: relative;
   height: 100%;
-  padding-block: 18px 26px;
 }
 
 .trail-sidebar {
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
-  position: relative;
-  z-index: 1;
-  min-height: 0;
-  row-gap: clamp(18px, 4vh, 49px);
-  padding-block: 18px 22px;
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  pointer-events: none;
 }
 
 .trail-nav {
+  position: absolute;
+  inset: clamp(91px, 14vh, 155px) auto auto var(--home-gutter);
   display: grid;
   justify-items: start;
-  align-self: start;
-  gap: 9px;
+  gap: 7px;
+  pointer-events: auto;
 }
 
 .trail-nav a {
   display: inline-flex;
   align-items: center;
-  gap: 11px;
-  padding-block: 6px;
+  gap: 9px;
+  padding: 6px 4px 6px 0;
   color: var(--muted);
-  font: 600 0.9rem/1.25 var(--mono);
+  font: 600 0.88rem/1.3 var(--mono);
 }
 
 .trail-nav a::before {
   content: '';
-  width: 13px;
+  width: 12px;
   height: 1px;
   background: var(--line);
 }
 
+.trail-nav a[aria-current],
 .trail-nav a:hover,
 .trail-nav a:focus-visible {
   color: var(--accent);
 }
 
+.trail-nav a[aria-current]::before,
 .trail-nav a:hover::before,
 .trail-nav a:focus-visible::before {
   background: var(--accent);
 }
 
+.trail-copy {
+  position: absolute;
+  inset: auto auto clamp(30px, 7.5vh, 100px) clamp(32px, 8.2vw, 205px);
+  width: min(30vw, 430px);
+  display: grid;
+  gap: clamp(18px, 3.4vh, 44px);
+  text-shadow: 0 1px 18px var(--bg), 0 1px 6px var(--bg);
+}
+
 .checkpoint-summary {
-  grid-row: 2;
+  grid-row: 1;
   align-self: end;
   max-width: 35ch;
   border-inline-start: 1px solid var(--accent);
@@ -88,30 +99,27 @@
 }
 
 .checkpoint-summary h2 {
-  font: 650 clamp(1.45rem, 3.1vw, 3rem)/0.98 var(--heading);
+  font: 650 clamp(1.5rem, 2.85vw, 2.95rem)/0.98 var(--heading);
   margin-block: 4px 5px;
+  max-width: 20ch;
 }
 
 .checkpoint-detail {
   color: var(--muted);
   font-size: 0.91rem;
   line-height: 1.36;
-  min-height: 2.72em;
 }
 
 .trail-identity {
-  grid-row: 3;
-  align-self: end;
-  pointer-events: none;
+  grid-row: 2;
 }
 
 .trail-identity h1 {
   width: max-content;
   margin-block: 4px 12px;
   color: var(--text);
-  font: 700 clamp(4.8rem, 8.5vw, 10rem)/0.8 var(--heading);
+  font: 700 clamp(4.8rem, 8.35vw, 10rem)/0.8 var(--heading);
   letter-spacing: -0.045em;
-  text-shadow: 0 2px 24px var(--bg);
 }
 
 .trail-identity h1 span {
@@ -119,39 +127,37 @@
 }
 
 .trail-intro {
-  max-width: 27ch;
+  max-width: 29ch;
   color: var(--muted);
   font-size: clamp(0.99rem, 1.45vw, 1.22rem);
   line-height: 1.42;
 }
 
 .mountain-scene {
-  --scene-bg: #121b19;
   --scene-edge: #334640;
   --scene-ink: #becdba;
-  --scene-glow: #243c3169;
-  --scene-grid: #a2c9bc12;
-  --scene-label: #141f1bdc;
+  --scene-glow: #37442162;
+  --scene-grid: #b2c89116;
+  --scene-label: #141f1bf2;
   --scene-accent: #d7ed91;
   --scene-accent-ink: #182016;
-  position: relative;
+  position: absolute;
+  inset: 0;
   min-width: 0;
   min-height: 0;
   margin: 0;
   overflow: hidden;
   isolation: isolate;
-  border: 1px solid var(--scene-edge);
-  background: var(--scene-bg);
+  background: var(--bg);
   color: var(--scene-ink);
 }
 
 [data-theme='light'] .mountain-scene {
-  --scene-bg: #e8ecdf;
   --scene-edge: #a3b69c;
   --scene-ink: #364e40;
-  --scene-glow: #fffde5c0;
-  --scene-grid: #4e766120;
-  --scene-label: #f3f5eae8;
+  --scene-glow: #dce3c572;
+  --scene-grid: #4e766125;
+  --scene-label: #f3f5eaee;
   --scene-accent: #43632d;
   --scene-accent-ink: #f8fae9;
 }
@@ -167,19 +173,35 @@
 
 .mountain-skylight {
   pointer-events: none;
+  overflow: hidden;
   background:
-    radial-gradient(ellipse at 53% 45%, var(--scene-glow), transparent 64%),
+    radial-gradient(ellipse at 68% 44%, var(--scene-glow), transparent 56%),
     radial-gradient(circle, var(--scene-grid) 1px, transparent 1.5px);
-  background-size: auto, 25px 25px;
+  background-size: auto, 34px 34px;
   background-position: center;
+}
+
+.mountain-skylight::after {
+  position: absolute;
+  content: '';
+  inset: 52% -18% -28% 22%;
+  background:
+    linear-gradient(var(--scene-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--scene-grid) 1px, transparent 1px);
+  background-size: 54px 54px;
+  transform: perspective(410px) rotateX(55deg);
+  transform-origin: center top;
+  mask-image: linear-gradient(transparent, #000 35%, transparent);
 }
 
 .mountain-location {
   position: absolute;
-  inset: 17px auto auto 17px;
+  inset: clamp(83px, 13vh, 148px) var(--home-gutter) auto auto;
   display: grid;
+  justify-items: end;
   gap: 4px;
   pointer-events: none;
+  text-shadow: 0 1px 8px var(--bg);
 }
 
 .mountain-location strong {
@@ -274,7 +296,7 @@
   z-index: 2;
 }
 
-.terrain-credit a:hover {
+.terrain-credit:hover {
   text-decoration: underline;
 }
 
@@ -359,50 +381,22 @@
   gap: 10px;
 }
 
-@media (max-width: 1050px) {
-  .trail-hero,
-  .site-header-home .header-content {
-    width: calc(100% - 66px);
-  }
-
-  .trail-hero {
-    grid-template-columns: minmax(190px, 0.35fr) minmax(0, 1fr);
-    column-gap: 14px;
-  }
-}
-
 @media (max-width: 740px) {
-  .trail-hero,
-  .site-header-home .header-content {
-    width: calc(100% - 32px);
-  }
-
   .site-header-home .header-content {
     min-height: 52px;
   }
 
-  .trail-hero {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto minmax(0, 1fr) auto auto;
-    gap: 8px;
-    padding-block: 5px 14px;
-  }
-
-  .trail-sidebar {
-    display: contents;
-  }
-
   .trail-nav {
-    grid-row: 1;
+    inset: 56px var(--home-gutter) auto;
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
-    gap: 0 15px;
+    gap: 0 13px;
+    width: fit-content;
   }
 
   .trail-nav a {
     gap: 4px;
-    font-size: 0.79rem;
+    font-size: 0.78rem;
     padding-block: 7px;
   }
 
@@ -410,13 +404,14 @@
     width: 5px;
   }
 
-  .mountain-scene {
-    grid-row: 2;
+  .trail-copy {
+    inset: auto 18px clamp(19px, 4vh, 34px) 18px;
+    width: auto;
+    gap: 12px;
   }
 
   .checkpoint-summary {
-    grid-row: 3;
-    max-width: none;
+    max-width: 43ch;
     padding-inline-start: 10px;
   }
 
@@ -426,12 +421,6 @@
 
   .checkpoint-detail {
     font-size: 0.84rem;
-    min-height: 0;
-  }
-
-  .trail-identity {
-    grid-row: 4;
-    padding-top: 4px;
   }
 
   .trail-identity h1 {
@@ -442,10 +431,6 @@
   .trail-intro {
     max-width: 42ch;
     font-size: 0.94rem;
-  }
-
-  .mountain-location {
-    inset: 9px auto auto 9px;
   }
 
   .mountain-location strong {
@@ -474,7 +459,7 @@
   }
 
   .terrain-credit {
-    inset: auto 7px 6px auto;
+    inset: auto 9px 6px auto;
     font-size: 0.59rem;
   }
 
@@ -492,23 +477,23 @@
   .project-map-disclosure .project-map { min-height: 330px; margin-inline: 5px; }
 }
 
-@media (max-height: 545px) {
-  .site-header-home .header-content { min-height: 43px; }
+@media (max-height: 600px) {
+  .site-header-home .header-content { min-height: 44px; }
   .home-frame .theme-button { width: 33px; height: 33px; }
-  .trail-sidebar { padding-block: 4px 8px; row-gap: 10px; }
-  .trail-hero { padding-block: 4px 8px; }
-  .trail-nav { gap: 0 13px; }
-  .trail-identity h1 { font-size: clamp(3.15rem, 7vw, 5rem); }
+  .trail-copy { gap: 8px; }
+  .trail-nav { top: 47px; }
+  .trail-identity h1 { font-size: clamp(3.3rem, 8vw, 6rem); }
   .checkpoint-summary h2 { font-size: clamp(1.35rem, 4vh, 2.3rem); }
+  .mountain-location { top: 77px; }
 }
 
-@media (max-width: 740px) and (max-height: 480px) and (orientation: landscape) {
-  .trail-hero {
-    grid-template-columns: minmax(155px, 0.36fr) minmax(0, 1fr);
-    grid-template-rows: auto minmax(0, 1fr) auto;
-  }
-  .trail-nav { grid-area: 1 / 1; }
-  .checkpoint-summary { grid-area: 2 / 1; }
-  .trail-identity { grid-area: 3 / 1; }
-  .mountain-scene { grid-area: 1 / 2 / 4 / 3; }
+@media (max-height: 530px) and (orientation: landscape) {
+  .trail-copy { inset: auto auto 16px var(--home-gutter); width: min(32vw, 360px); }
+  .trail-identity h1 { font-size: clamp(3rem, 7vw, 5.5rem); }
+  .trail-nav { right: auto; }
+}
+
+@media (max-width: 355px) {
+  .trail-nav { gap: 0 7px; }
+  .trail-nav a { font-size: 0.73rem; }
 }

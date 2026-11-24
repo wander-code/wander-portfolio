@@ -1,5 +1,5 @@
 import { Github, Mail, Mountain, Moon, Sun } from 'lucide-react';
-import { useEffect, useState, type CSSProperties } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Link, Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom';
 import { BoopDemo } from './BoopDemo';
 import { checkpoints } from './checkpoints';
@@ -36,6 +36,7 @@ function ProjectArt({ id }: { id: string }) {
 function Home({ light }: { light: boolean }) {
   const { hash } = useLocation();
   const [selected, setSelected] = useState(0);
+  const textOverlay = useRef<HTMLDivElement>(null);
   const route = legacySections[hash];
   if (route) return <Navigate to={route} replace />;
   const checkpoint = checkpoints[selected];
@@ -45,23 +46,25 @@ function Home({ light }: { light: boolean }) {
       <section className="trail-hero" aria-labelledby="hero-title">
         <div className="trail-sidebar">
           <nav className="trail-nav" aria-label="Main navigation">
+            <Link to="/" aria-current="page">Home</Link>
             <Link to="/projects">Projects</Link>
             <Link to="/qualifications">Qualifications</Link>
             <Link to="/contact">Contact</Link>
           </nav>
-          <div className="trail-identity">
-            <p className="trail-name">Tomas Capili</p>
-            <h1 id="hero-title">Wander<span>.</span></h1>
-            <p className="trail-intro">Software engineering student, an endurance mountaineer in the Philippines.</p>
+          <div ref={textOverlay} className="trail-copy">
+            <div className="trail-identity">
+              <p className="trail-name">Tomas Capili</p>
+              <h1 id="hero-title">Wander<span>.</span></h1>
+              <p className="trail-intro">Software engineering student, an endurance mountaineer in the Philippines.</p>
+            </div>
+            <section className="checkpoint-summary" aria-label="Selected checkpoint" aria-live="polite">
+              <p className="checkpoint-stage">{checkpoint.stage}</p>
+              <h2>{checkpoint.title}</h2>
+              <p className="checkpoint-detail">{checkpoint.detail}</p>
+            </section>
           </div>
-          <section className="checkpoint-summary" aria-label="Selected checkpoint" aria-live="polite">
-            <p className="checkpoint-stage">{checkpoint.stage}</p>
-            <h2>{checkpoint.title}</h2>
-            <p className="checkpoint-detail">{checkpoint.detail}</p>
-          </section>
-
         </div>
-        <MountainScene light={light} selected={selected} onSelect={setSelected} />
+        <MountainScene light={light} selected={selected} onSelect={setSelected} textOverlay={textOverlay} />
       </section>
     </main>
   );
